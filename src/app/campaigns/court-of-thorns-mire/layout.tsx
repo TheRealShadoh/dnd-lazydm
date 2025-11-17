@@ -38,6 +38,15 @@ export default function CampaignLayout({
 
           <nav className="space-y-6">
             <div>
+              <Link
+                href="/campaigns/court-of-thorns-mire/characters"
+                className="block px-3 py-2 rounded text-sm font-semibold text-purple-400 hover:bg-purple-500/10 transition-colors"
+              >
+                👥 Party Characters
+              </Link>
+            </div>
+
+            <div>
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 Scenes
               </h3>

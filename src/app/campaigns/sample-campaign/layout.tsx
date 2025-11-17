@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 
 const navigation = [
   { title: 'Campaign Home', href: '/campaigns/sample-campaign' },
+  { title: 'Characters', href: '/campaigns/sample-campaign/characters' },
   { title: 'Scenes', href: '/campaigns/sample-campaign/scenes' },
   { title: 'Monsters', href: '/campaigns/sample-campaign/reference/monsters' },
   { title: 'Reference', href: '/campaigns/sample-campaign/reference' },

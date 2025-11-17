@@ -31,13 +31,28 @@ interface Monster {
   cr: string
 }
 
+interface DnDBeyondCharacter {
+  characterId: string
+  name: string
+  cachedData?: any
+  lastSync?: string
+}
+
 export default function CampaignAdminPage() {
   const params = useParams()
   const campaignId = params.campaignId as string
   const [campaign, setCampaign] = useState<CampaignMetadata | null>(null)
   const [scenes, setScenes] = useState<Scene[]>([])
   const [monsters, setMonsters] = useState<Monster[]>([])
+  const [characters, setCharacters] = useState<DnDBeyondCharacter[]>([])
   const [loading, setLoading] = useState(true)
+  const [characterIdInput, setCharacterIdInput] = useState('')
+  const [campaignUrlInput, setCampaignUrlInput] = useState('')
+  const [addingCharacter, setAddingCharacter] = useState(false)
+  const [syncingCharacters, setSyncingCharacters] = useState(false)
+  const [bulkImportMode, setBulkImportMode] = useState(false)
+  const [bulkInput, setBulkInput] = useState('')
+  const [bulkImportProgress, setBulkImportProgress] = useState({ current: 0, total: 0, status: '' })
 
   useEffect(() => {
     const loadCampaign = async () => {
@@ -62,6 +77,14 @@ export default function CampaignAdminPage() {
           const data = await monstersResponse.json()
           setMonsters(data.monsters || [])
         }
+
+        // Load characters list
+        const charactersResponse = await fetch(`/api/campaigns/${campaignId}/characters`)
+        if (charactersResponse.ok) {
+          const data = await charactersResponse.json()
+          setCharacters(data.characters || [])
+          setCampaignUrlInput(data.campaignUrl || '')
+        }
       } catch (error) {
         console.error('Error loading campaign:', error)
       } finally {
@@ -71,6 +94,201 @@ export default function CampaignAdminPage() {
 
     loadCampaign()
   }, [campaignId])
+
+  const handleAddCharacter = async () => {
+    if (!characterIdInput.trim()) return
+
+    // Extract character ID from URL or use as-is if it's just a number
+    const ids = extractCharacterIds(characterIdInput)
+    if (ids.length === 0) {
+      alert('Invalid character ID or URL')
+      return
+    }
+    const characterId = ids[0]
+
+    setAddingCharacter(true)
+    try {
+      const response = await fetch(`/api/campaigns/${campaignId}/characters`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          characterId,
+          campaignUrl: campaignUrlInput.trim(),
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCharacters((prev) => {
+          const existing = prev.findIndex((c) => c.characterId === data.character.characterId)
+          if (existing >= 0) {
+            const updated = [...prev]
+            updated[existing] = data.character
+            return updated
+          }
+          return [...prev, data.character]
+        })
+        setCharacterIdInput('')
+        alert(`Character "${data.character.name}" added successfully!`)
+      } else {
+        const error = await response.json()
+        alert(`Failed to add character: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error adding character:', error)
+      alert('Failed to add character')
+    } finally {
+      setAddingCharacter(false)
+    }
+  }
+
+  const handleRemoveCharacter = async (characterId: string) => {
+    if (!confirm('Are you sure you want to remove this character?')) return
+
+    try {
+      const response = await fetch(
+        `/api/campaigns/${campaignId}/characters?characterId=${characterId}`,
+        { method: 'DELETE' }
+      )
+
+      if (response.ok) {
+        setCharacters((prev) => prev.filter((c) => c.characterId !== characterId))
+      } else {
+        alert('Failed to remove character')
+      }
+    } catch (error) {
+      console.error('Error removing character:', error)
+      alert('Failed to remove character')
+    }
+  }
+
+  const handleSyncCharacters = async (characterId?: string) => {
+    setSyncingCharacters(true)
+    try {
+      const response = await fetch(`/api/campaigns/${campaignId}/characters/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ characterId }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCharacters(data.characters || [])
+        alert(characterId ? 'Character synced successfully!' : 'All characters synced successfully!')
+      } else {
+        alert('Failed to sync characters')
+      }
+    } catch (error) {
+      console.error('Error syncing characters:', error)
+      alert('Failed to sync characters')
+    } finally {
+      setSyncingCharacters(false)
+    }
+  }
+
+  const extractCharacterIds = (input: string): string[] => {
+    const ids: string[] = []
+
+    // Split by newlines, commas, or spaces
+    const lines = input.split(/[\n,\s]+/).filter(line => line.trim())
+
+    for (const line of lines) {
+      const trimmed = line.trim()
+
+      // Try to match URL format: https://www.dndbeyond.com/characters/12345678
+      const urlMatch = trimmed.match(/dndbeyond\.com\/characters\/(\d+)/)
+      if (urlMatch) {
+        ids.push(urlMatch[1])
+        continue
+      }
+
+      // Try to match just a number
+      const numberMatch = trimmed.match(/^\d+$/)
+      if (numberMatch) {
+        ids.push(trimmed)
+      }
+    }
+
+    return [...new Set(ids)] // Remove duplicates
+  }
+
+  const handleBulkImport = async () => {
+    const characterIds = extractCharacterIds(bulkInput)
+
+    if (characterIds.length === 0) {
+      alert('No valid character IDs or URLs found. Please check your input.')
+      return
+    }
+
+    if (!confirm(`Import ${characterIds.length} character(s)?`)) {
+      return
+    }
+
+    setAddingCharacter(true)
+    setBulkImportProgress({ current: 0, total: characterIds.length, status: 'Starting...' })
+
+    const results = { success: 0, failed: 0, errors: [] as string[] }
+
+    for (let i = 0; i < characterIds.length; i++) {
+      const characterId = characterIds[i]
+      setBulkImportProgress({
+        current: i + 1,
+        total: characterIds.length,
+        status: `Importing character ${i + 1} of ${characterIds.length}...`
+      })
+
+      try {
+        const response = await fetch(`/api/campaigns/${campaignId}/characters`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            characterId,
+            campaignUrl: campaignUrlInput.trim(),
+          }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setCharacters((prev) => {
+            const existing = prev.findIndex((c) => c.characterId === data.character.characterId)
+            if (existing >= 0) {
+              const updated = [...prev]
+              updated[existing] = data.character
+              return updated
+            }
+            return [...prev, data.character]
+          })
+          results.success++
+        } else {
+          const error = await response.json()
+          results.failed++
+          results.errors.push(`${characterId}: ${error.error}`)
+        }
+      } catch (error) {
+        results.failed++
+        results.errors.push(`${characterId}: ${(error as Error).message}`)
+      }
+
+      // Small delay to avoid rate limiting
+      if (i < characterIds.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
+    }
+
+    setAddingCharacter(false)
+    setBulkImportProgress({ current: 0, total: 0, status: '' })
+    setBulkInput('')
+
+    // Show results
+    let message = `Import complete!\n\nSuccessful: ${results.success}\nFailed: ${results.failed}`
+    if (results.errors.length > 0) {
+      message += `\n\nErrors:\n${results.errors.slice(0, 5).join('\n')}`
+      if (results.errors.length > 5) {
+        message += `\n... and ${results.errors.length - 5} more`
+      }
+    }
+    alert(message)
+  }
 
   if (loading) {
     return (
@@ -288,6 +506,227 @@ export default function CampaignAdminPage() {
               <div className="text-center py-8 text-gray-500">
                 <div className="text-3xl mb-2">🐉</div>
                 <p>No monsters yet. Create your first monster stat block to get started.</p>
+              </div>
+            )}
+          </div>
+
+          {/* D&D Beyond Characters Section */}
+          <div className="bg-gray-900 rounded-xl border-2 border-gray-800 p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-white">
+                D&D Beyond Characters
+                {characters.length > 0 && (
+                  <span className="ml-3 text-lg text-gray-400">({characters.length})</span>
+                )}
+              </h2>
+              {characters.length > 0 && (
+                <button
+                  onClick={() => handleSyncCharacters()}
+                  disabled={syncingCharacters}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600
+                             rounded-lg text-sm font-semibold transition-colors duration-200"
+                >
+                  {syncingCharacters ? '🔄 Syncing...' : '🔄 Sync All'}
+                </button>
+              )}
+            </div>
+
+            {/* Add Character Form */}
+            <div className="mb-6 p-4 bg-gray-800 rounded-lg">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-white">Link D&D Beyond Character</h3>
+                <button
+                  onClick={() => setBulkImportMode(!bulkImportMode)}
+                  className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm
+                             transition-colors duration-200"
+                >
+                  {bulkImportMode ? '← Single Import' : 'Bulk Import →'}
+                </button>
+              </div>
+
+              {!bulkImportMode ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">
+                      D&D Beyond Campaign URL (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={campaignUrlInput}
+                      onChange={(e) => setCampaignUrlInput(e.target.value)}
+                      placeholder="https://www.dndbeyond.com/campaigns/12345"
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded
+                                 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Optional: Paste your D&D Beyond campaign URL for reference
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">
+                      Character ID or URL (required)
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={characterIdInput}
+                        onChange={(e) => setCharacterIdInput(e.target.value)}
+                        placeholder="48690485 or https://www.dndbeyond.com/characters/48690485"
+                        className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded
+                                   text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') handleAddCharacter()
+                        }}
+                      />
+                      <button
+                        onClick={handleAddCharacter}
+                        disabled={addingCharacter || !characterIdInput.trim()}
+                        className="px-6 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-600
+                                   rounded-lg font-semibold transition-colors duration-200 whitespace-nowrap"
+                      >
+                        {addingCharacter ? 'Adding...' : '+ Add'}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Paste character ID or full URL from D&D Beyond
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">
+                      Character IDs or URLs (one per line)
+                    </label>
+                    <textarea
+                      value={bulkInput}
+                      onChange={(e) => setBulkInput(e.target.value)}
+                      placeholder={`Paste multiple character URLs or IDs:\n\nhttps://www.dndbeyond.com/characters/12345678\nhttps://www.dndbeyond.com/characters/87654321\n\nOr just IDs:\n12345678\n87654321`}
+                      rows={8}
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded
+                                 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500
+                                 font-mono text-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Paste character URLs or IDs separated by newlines, commas, or spaces
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleBulkImport}
+                    disabled={addingCharacter || !bulkInput.trim()}
+                    className="w-full px-6 py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-600
+                               rounded-lg font-semibold transition-colors duration-200"
+                  >
+                    {addingCharacter ? bulkImportProgress.status : '📥 Import All Characters'}
+                  </button>
+                  {bulkImportProgress.total > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm text-gray-400">
+                        <span>{bulkImportProgress.status}</span>
+                        <span>{bulkImportProgress.current} / {bulkImportProgress.total}</span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="h-full bg-purple-500 transition-all duration-300"
+                          style={{ width: `${(bulkImportProgress.current / bulkImportProgress.total) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Characters List */}
+            {characters.length > 0 ? (
+              <div className="space-y-3">
+                {characters.map((character) => {
+                  const char = character.cachedData
+                  const hp = char?.currentHitPoints || 0
+                  const maxHp = char?.maxHitPoints || 0
+                  const ac = char?.armorClass || 10
+                  const level = char?.level || 1
+                  const className = char?.classes
+                    ?.map((c: any) => `${c.name} ${c.level}`)
+                    .join(' / ') || 'Unknown'
+
+                  return (
+                    <div
+                      key={character.characterId}
+                      className="p-4 bg-gray-800 rounded-lg border border-gray-700"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex gap-4 flex-1">
+                          {char?.avatarUrl && (
+                            <img
+                              src={char.avatarUrl}
+                              alt={character.name}
+                              className="w-16 h-16 rounded-lg object-cover border-2 border-gray-600"
+                            />
+                          )}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-xl font-bold text-white">{character.name}</h3>
+                              <span className="text-sm text-gray-400">Lvl {level}</span>
+                            </div>
+                            <div className="text-sm text-gray-400 mb-2">
+                              {char?.race} - {className}
+                            </div>
+                            <div className="flex gap-4 text-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-400">HP:</span>
+                                <span className="font-semibold text-red-400">
+                                  {hp} / {maxHp}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-400">AC:</span>
+                                <span className="font-semibold text-blue-400">{ac}</span>
+                              </div>
+                            </div>
+                            {character.lastSync && (
+                              <div className="text-xs text-gray-500 mt-2">
+                                Last synced: {new Date(character.lastSync).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSyncCharacters(character.characterId)}
+                            disabled={syncingCharacters}
+                            className="px-3 py-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600
+                                       rounded text-sm transition-colors duration-200"
+                            title="Sync this character"
+                          >
+                            🔄
+                          </button>
+                          <a
+                            href={`https://www.dndbeyond.com/characters/${character.characterId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 bg-purple-500 hover:bg-purple-600 rounded text-sm
+                                       transition-colors duration-200"
+                          >
+                            👁️ View
+                          </a>
+                          <button
+                            onClick={() => handleRemoveCharacter(character.characterId)}
+                            className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm
+                                       transition-colors duration-200"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-3xl mb-2">👥</div>
+                <p>No characters linked yet. Add a D&D Beyond character to get started.</p>
               </div>
             )}
           </div>
