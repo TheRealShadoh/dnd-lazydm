@@ -39,7 +39,7 @@ export default function HomePage() {
               <div className="p-6 bg-gray-900/50">
                 <p className="text-purple-400 font-semibold mb-2">A Romantasy One-Shot Adventure</p>
                 <p className="text-sm text-gray-300 mb-4">
-                  Hunt for survival when a winged creature steals a baron's daughter.
+                  Hunt for survival when a winged creature steals a baron&apos;s daughter.
                   Venture into Fae-claimed Wastelands with Seraphine, a disgraced Royal Ranger.
                 </p>
 
