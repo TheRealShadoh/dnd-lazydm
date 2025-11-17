@@ -4,6 +4,16 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-1 max-w-7xl mx-auto px-4 py-16 w-full">
+        <div className="flex justify-end mb-4">
+          <Link
+            href="/admin"
+            className="px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg font-semibold
+                       transition-colors duration-200 flex items-center gap-2"
+          >
+            <span>⚙️</span>
+            Campaign Manager
+          </Link>
+        </div>
         <div className="text-center mb-16">
           <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-purple-primary to-purple-dark bg-clip-text text-transparent">
             DM Campaign Manager

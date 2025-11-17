@@ -25,10 +25,13 @@ export default function CampaignLayout({
       {/* Sidebar Navigation */}
       <aside className="w-64 border-r border-gray-800 bg-gray-950 sticky top-0 h-screen overflow-y-auto hidden lg:block">
         <div className="p-6">
-          <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors mb-4 block">
+          <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors mb-2 block">
             ← Back to Home
           </Link>
-          
+          <Link href="/admin/campaigns/court-of-thorns-mire" className="text-sm text-purple-400 hover:text-purple-300 transition-colors mb-4 block">
+            ⚙️ Manage Campaign
+          </Link>
+
           <h2 className="text-lg font-bold bg-gradient-to-r from-purple-primary to-purple-dark bg-clip-text text-transparent mb-6">
             Court of Thorns and Mire
           </h2>
@@ -78,10 +81,15 @@ export default function CampaignLayout({
         {/* Mobile Header */}
         <header className="border-b border-gray-800 bg-gray-950 lg:hidden">
           <div className="px-4 py-4">
-            <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm">
-              ← Back to Home
-            </Link>
-            <h1 className="text-lg font-bold bg-gradient-to-r from-purple-primary to-purple-dark bg-clip-text text-transparent mt-2">
+            <div className="flex items-center justify-between mb-2">
+              <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm">
+                ← Back to Home
+              </Link>
+              <Link href="/admin/campaigns/court-of-thorns-mire" className="text-purple-400 hover:text-purple-300 transition-colors text-sm">
+                ⚙️ Manage
+              </Link>
+            </div>
+            <h1 className="text-lg font-bold bg-gradient-to-r from-purple-primary to-purple-dark bg-clip-text text-transparent">
               Court of Thorns and Mire
             </h1>
           </div>

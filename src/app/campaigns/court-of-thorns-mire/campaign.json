@@ -1,0 +1,15 @@
+{
+  "name": "The Court of Thorns and Mire",
+  "slug": "court-of-thorns-mire",
+  "description": "A romantasy one-shot adventure",
+  "level": "4",
+  "players": "1-2",
+  "duration": "One-shot (3-4 hours)",
+  "genre": "Romantasy",
+  "thumbnail": "/campaigns/court-of-thorns-mire/img/seraphine.jpg",
+  "theme": {
+    "primary": "#ab47bc",
+    "secondary": "#7b1fa2"
+  },
+  "createdAt": "2025-01-16T00:00:00.000Z"
+}

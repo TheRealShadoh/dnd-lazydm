@@ -1,0 +1,15 @@
+{
+  "name": "sample campaign",
+  "slug": "sample-campaign",
+  "description": "trying stuff out",
+  "level": "10",
+  "players": "4",
+  "duration": "",
+  "genre": "",
+  "thumbnail": "",
+  "theme": {
+    "primary": "#47bd90",
+    "secondary": "#07785c"
+  },
+  "createdAt": "2025-11-17T04:31:48.028Z"
+}
