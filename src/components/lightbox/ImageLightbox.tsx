@@ -48,7 +48,7 @@ export function ImageLightbox({
       <Lightbox
         open={open}
         close={() => setOpen(false)}
-        slides={[{ src, alt, description: caption }]}
+        slides={[{ src, alt }]}
         plugins={[Zoom]}
         styles={{
           container: { backgroundColor: 'rgba(0, 0, 0, 0.95)' },
