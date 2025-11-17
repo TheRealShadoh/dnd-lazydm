@@ -46,13 +46,68 @@ export default function CampaignAdminPage() {
   const [monsters, setMonsters] = useState<Monster[]>([])
   const [characters, setCharacters] = useState<DnDBeyondCharacter[]>([])
   const [loading, setLoading] = useState(true)
-  const [characterIdInput, setCharacterIdInput] = useState('')
-  const [campaignUrlInput, setCampaignUrlInput] = useState('')
+
+  // Manual character add form state
+  const [showManualForm, setShowManualForm] = useState(false)
+  const [manualCharacter, setManualCharacter] = useState({
+    name: '',
+    class: '',
+    level: 1,
+    race: '',
+    background: '',
+    alignment: '',
+    str: 10,
+    dex: 10,
+    con: 10,
+    int: 10,
+    wis: 10,
+    cha: 10,
+    currentHp: 0,
+    maxHp: 0,
+    tempHp: 0,
+    ac: 10,
+    initiative: 0,
+    speed: 30,
+    proficiencyBonus: 2,
+    inspiration: false,
+    // Saving throws
+    strSave: 0,
+    dexSave: 0,
+    conSave: 0,
+    intSave: 0,
+    wisSave: 0,
+    chaSave: 0,
+    // Skills
+    acrobatics: 0,
+    animalHandling: 0,
+    arcana: 0,
+    athletics: 0,
+    deception: 0,
+    history: 0,
+    insight: 0,
+    intimidation: 0,
+    investigation: 0,
+    medicine: 0,
+    nature: 0,
+    perception: 0,
+    performance: 0,
+    persuasion: 0,
+    religion: 0,
+    sleightOfHand: 0,
+    stealth: 0,
+    survival: 0,
+    passivePerception: 10,
+    // Other
+    languages: '',
+    equipment: '',
+    features: '',
+  })
   const [addingCharacter, setAddingCharacter] = useState(false)
-  const [syncingCharacters, setSyncingCharacters] = useState(false)
-  const [bulkImportMode, setBulkImportMode] = useState(false)
-  const [bulkInput, setBulkInput] = useState('')
-  const [bulkImportProgress, setBulkImportProgress] = useState({ current: 0, total: 0, status: '' })
+
+  // PDF import state
+  const [pdfFile, setPdfFile] = useState<File | null>(null)
+  const [uploadingPdf, setUploadingPdf] = useState(false)
+  const [pdfProgress, setPdfProgress] = useState('')
 
   useEffect(() => {
     const loadCampaign = async () => {
@@ -83,7 +138,6 @@ export default function CampaignAdminPage() {
         if (charactersResponse.ok) {
           const data = await charactersResponse.json()
           setCharacters(data.characters || [])
-          setCampaignUrlInput(data.campaignUrl || '')
         }
       } catch (error) {
         console.error('Error loading campaign:', error)
@@ -95,52 +149,6 @@ export default function CampaignAdminPage() {
     loadCampaign()
   }, [campaignId])
 
-  const handleAddCharacter = async () => {
-    if (!characterIdInput.trim()) return
-
-    // Extract character ID from URL or use as-is if it's just a number
-    const ids = extractCharacterIds(characterIdInput)
-    if (ids.length === 0) {
-      alert('Invalid character ID or URL')
-      return
-    }
-    const characterId = ids[0]
-
-    setAddingCharacter(true)
-    try {
-      const response = await fetch(`/api/campaigns/${campaignId}/characters`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          characterId,
-          campaignUrl: campaignUrlInput.trim(),
-        }),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setCharacters((prev) => {
-          const existing = prev.findIndex((c) => c.characterId === data.character.characterId)
-          if (existing >= 0) {
-            const updated = [...prev]
-            updated[existing] = data.character
-            return updated
-          }
-          return [...prev, data.character]
-        })
-        setCharacterIdInput('')
-        alert(`Character "${data.character.name}" added successfully!`)
-      } else {
-        const error = await response.json()
-        alert(`Failed to add character: ${error.error}`)
-      }
-    } catch (error) {
-      console.error('Error adding character:', error)
-      alert('Failed to add character')
-    } finally {
-      setAddingCharacter(false)
-    }
-  }
 
   const handleRemoveCharacter = async (characterId: string) => {
     if (!confirm('Are you sure you want to remove this character?')) return
@@ -162,132 +170,150 @@ export default function CampaignAdminPage() {
     }
   }
 
-  const handleSyncCharacters = async (characterId?: string) => {
-    setSyncingCharacters(true)
-    try {
-      const response = await fetch(`/api/campaigns/${campaignId}/characters/sync`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ characterId }),
-      })
 
-      if (response.ok) {
-        const data = await response.json()
-        setCharacters(data.characters || [])
-        alert(characterId ? 'Character synced successfully!' : 'All characters synced successfully!')
-      } else {
-        alert('Failed to sync characters')
-      }
-    } catch (error) {
-      console.error('Error syncing characters:', error)
-      alert('Failed to sync characters')
-    } finally {
-      setSyncingCharacters(false)
-    }
-  }
-
-  const extractCharacterIds = (input: string): string[] => {
-    const ids: string[] = []
-
-    // Split by newlines, commas, or spaces
-    const lines = input.split(/[\n,\s]+/).filter(line => line.trim())
-
-    for (const line of lines) {
-      const trimmed = line.trim()
-
-      // Try to match URL format: https://www.dndbeyond.com/characters/12345678
-      const urlMatch = trimmed.match(/dndbeyond\.com\/characters\/(\d+)/)
-      if (urlMatch) {
-        ids.push(urlMatch[1])
-        continue
-      }
-
-      // Try to match just a number
-      const numberMatch = trimmed.match(/^\d+$/)
-      if (numberMatch) {
-        ids.push(trimmed)
-      }
-    }
-
-    return [...new Set(ids)] // Remove duplicates
-  }
-
-  const handleBulkImport = async () => {
-    const characterIds = extractCharacterIds(bulkInput)
-
-    if (characterIds.length === 0) {
-      alert('No valid character IDs or URLs found. Please check your input.')
-      return
-    }
-
-    if (!confirm(`Import ${characterIds.length} character(s)?`)) {
+  const handleManualAdd = async () => {
+    if (!manualCharacter.name || !manualCharacter.class || !manualCharacter.race) {
+      alert('Please fill in at least Name, Class, and Race')
       return
     }
 
     setAddingCharacter(true)
-    setBulkImportProgress({ current: 0, total: characterIds.length, status: 'Starting...' })
+    try {
+      const characterData = {
+        id: `manual-${Date.now()}`,
+        name: manualCharacter.name,
+        level: manualCharacter.level,
+        race: manualCharacter.race,
+        background: manualCharacter.background,
+        alignment: manualCharacter.alignment,
+        classes: [{ name: manualCharacter.class, level: manualCharacter.level }],
+        currentHitPoints: manualCharacter.currentHp,
+        maxHitPoints: manualCharacter.maxHp,
+        temporaryHitPoints: manualCharacter.tempHp,
+        armorClass: manualCharacter.ac,
+        initiative: manualCharacter.initiative,
+        speed: `${manualCharacter.speed} ft`,
+        proficiencyBonus: manualCharacter.proficiencyBonus,
+        stats: {
+          strength: manualCharacter.str,
+          dexterity: manualCharacter.dex,
+          constitution: manualCharacter.con,
+          intelligence: manualCharacter.int,
+          wisdom: manualCharacter.wis,
+          charisma: manualCharacter.cha,
+        },
+        savingThrows: {
+          strength: manualCharacter.strSave,
+          dexterity: manualCharacter.dexSave,
+          constitution: manualCharacter.conSave,
+          intelligence: manualCharacter.intSave,
+          wisdom: manualCharacter.wisSave,
+          charisma: manualCharacter.chaSave,
+        },
+        skills: {
+          acrobatics: manualCharacter.acrobatics,
+          animalHandling: manualCharacter.animalHandling,
+          arcana: manualCharacter.arcana,
+          athletics: manualCharacter.athletics,
+          deception: manualCharacter.deception,
+          history: manualCharacter.history,
+          insight: manualCharacter.insight,
+          intimidation: manualCharacter.intimidation,
+          investigation: manualCharacter.investigation,
+          medicine: manualCharacter.medicine,
+          nature: manualCharacter.nature,
+          perception: manualCharacter.perception,
+          performance: manualCharacter.performance,
+          persuasion: manualCharacter.persuasion,
+          religion: manualCharacter.religion,
+          sleightOfHand: manualCharacter.sleightOfHand,
+          stealth: manualCharacter.stealth,
+          survival: manualCharacter.survival,
+        },
+        passivePerception: manualCharacter.passivePerception,
+        inspiration: manualCharacter.inspiration,
+        languages: manualCharacter.languages,
+        equipment: manualCharacter.equipment,
+        featuresAndTraits: manualCharacter.features,
+        conditions: [],
+        deathSaves: { failCount: 0, successCount: 0 },
+      }
 
-    const results = { success: 0, failed: 0, errors: [] as string[] }
-
-    for (let i = 0; i < characterIds.length; i++) {
-      const characterId = characterIds[i]
-      setBulkImportProgress({
-        current: i + 1,
-        total: characterIds.length,
-        status: `Importing character ${i + 1} of ${characterIds.length}...`
+      const response = await fetch(`/api/campaigns/${campaignId}/characters/manual-add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ characterData }),
       })
 
-      try {
-        const response = await fetch(`/api/campaigns/${campaignId}/characters`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            characterId,
-            campaignUrl: campaignUrlInput.trim(),
-          }),
+      if (response.ok) {
+        const data = await response.json()
+        setCharacters((prev) => [...prev, data.character])
+
+        // Reset form
+        setManualCharacter({
+          name: '', class: '', level: 1, race: '', background: '', alignment: '',
+          str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
+          currentHp: 0, maxHp: 0, tempHp: 0, ac: 10, initiative: 0, speed: 30,
+          proficiencyBonus: 2, inspiration: false,
+          strSave: 0, dexSave: 0, conSave: 0, intSave: 0, wisSave: 0, chaSave: 0,
+          acrobatics: 0, animalHandling: 0, arcana: 0, athletics: 0, deception: 0,
+          history: 0, insight: 0, intimidation: 0, investigation: 0, medicine: 0,
+          nature: 0, perception: 0, performance: 0, persuasion: 0, religion: 0,
+          sleightOfHand: 0, stealth: 0, survival: 0, passivePerception: 10,
+          languages: '', equipment: '', features: '',
         })
-
-        if (response.ok) {
-          const data = await response.json()
-          setCharacters((prev) => {
-            const existing = prev.findIndex((c) => c.characterId === data.character.characterId)
-            if (existing >= 0) {
-              const updated = [...prev]
-              updated[existing] = data.character
-              return updated
-            }
-            return [...prev, data.character]
-          })
-          results.success++
-        } else {
-          const error = await response.json()
-          results.failed++
-          results.errors.push(`${characterId}: ${error.error}`)
-        }
-      } catch (error) {
-        results.failed++
-        results.errors.push(`${characterId}: ${(error as Error).message}`)
+        setShowManualForm(false)
+        alert(`Character "${characterData.name}" added successfully!`)
+      } else {
+        const error = await response.json()
+        alert(`Failed to add character: ${error.error}`)
       }
+    } catch (error) {
+      console.error('Character add error:', error)
+      alert(`Failed to add character: ${(error as Error).message}`)
+    } finally {
+      setAddingCharacter(false)
+    }
+  }
 
-      // Small delay to avoid rate limiting
-      if (i < characterIds.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 500))
-      }
+  const handlePdfImport = async () => {
+    if (!pdfFile) {
+      alert('Please select a PDF file first')
+      return
     }
 
-    setAddingCharacter(false)
-    setBulkImportProgress({ current: 0, total: 0, status: '' })
-    setBulkInput('')
+    setUploadingPdf(true)
+    setPdfProgress('Reading PDF file...')
 
-    // Show results
-    let message = `Import complete!\n\nSuccessful: ${results.success}\nFailed: ${results.failed}`
-    if (results.errors.length > 0) {
-      message += `\n\nErrors:\n${results.errors.slice(0, 5).join('\n')}`
-      if (results.errors.length > 5) {
-        message += `\n... and ${results.errors.length - 5} more`
+    try {
+      const formData = new FormData()
+      formData.append('pdf', pdfFile)
+
+      setPdfProgress('Uploading and parsing PDF...')
+      const response = await fetch(`/api/campaigns/${campaignId}/characters/import-pdf`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setPdfProgress('Character imported successfully!')
+        setCharacters((prev) => [...prev, data.character])
+        setPdfFile(null)
+        setTimeout(() => setPdfProgress(''), 2000)
+        alert(`Character "${data.character.name}" imported from PDF!`)
+      } else {
+        const error = await response.json()
+        setPdfProgress('')
+        alert(`Failed to import PDF: ${error.error}`)
       }
+    } catch (error) {
+      console.error('PDF import error:', error)
+      setPdfProgress('')
+      alert(`Failed to import PDF: ${(error as Error).message}`)
+    } finally {
+      setUploadingPdf(false)
     }
-    alert(message)
   }
 
   if (loading) {
@@ -514,125 +540,592 @@ export default function CampaignAdminPage() {
           <div className="bg-gray-900 rounded-xl border-2 border-gray-800 p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-white">
-                D&D Beyond Characters
+                Characters
                 {characters.length > 0 && (
                   <span className="ml-3 text-lg text-gray-400">({characters.length})</span>
                 )}
               </h2>
-              {characters.length > 0 && (
-                <button
-                  onClick={() => handleSyncCharacters()}
-                  disabled={syncingCharacters}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600
-                             rounded-lg text-sm font-semibold transition-colors duration-200"
-                >
-                  {syncingCharacters ? '🔄 Syncing...' : '🔄 Sync All'}
-                </button>
-              )}
             </div>
 
-            {/* Add Character Form */}
+            {/* PDF Import */}
+            <div className="mb-4 p-4 bg-gray-800 rounded-lg">
+              <h3 className="text-lg font-semibold text-white mb-3">Import from PDF</h3>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white
+                               file:mr-3 file:py-1 file:px-3 file:rounded file:border-0
+                               file:bg-purple-600 file:text-white file:cursor-pointer
+                               hover:file:bg-purple-700"
+                  />
+                  <button
+                    onClick={handlePdfImport}
+                    disabled={!pdfFile || uploadingPdf}
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600
+                               disabled:cursor-not-allowed rounded-lg font-semibold
+                               transition-colors duration-200"
+                  >
+                    {uploadingPdf ? 'Importing...' : 'Import PDF'}
+                  </button>
+                </div>
+                {pdfProgress && (
+                  <div className="px-3 py-2 bg-blue-900/50 border border-blue-700 rounded text-blue-200 text-sm">
+                    {pdfProgress}
+                  </div>
+                )}
+                {pdfFile && (
+                  <div className="text-sm text-gray-400">
+                    Selected: {pdfFile.name}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Manual Add Character */}
             <div className="mb-6 p-4 bg-gray-800 rounded-lg">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-white">Link D&D Beyond Character</h3>
-                <button
-                  onClick={() => setBulkImportMode(!bulkImportMode)}
-                  className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm
-                             transition-colors duration-200"
-                >
-                  {bulkImportMode ? '← Single Import' : 'Bulk Import →'}
-                </button>
+                <h3 className="text-lg font-semibold text-white">Manual Add</h3>
+                {!showManualForm && (
+                  <button
+                    onClick={() => setShowManualForm(true)}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold
+                               transition-colors duration-200"
+                  >
+                    + Add New Character
+                  </button>
+                )}
               </div>
 
-              {!bulkImportMode ? (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">
-                      D&D Beyond Campaign URL (optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={campaignUrlInput}
-                      onChange={(e) => setCampaignUrlInput(e.target.value)}
-                      placeholder="https://www.dndbeyond.com/campaigns/12345"
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded
-                                 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Optional: Paste your D&D Beyond campaign URL for reference
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">
-                      Character ID or URL (required)
-                    </label>
-                    <div className="flex gap-2">
+              {showManualForm && (
+                <div className="space-y-4 p-4 bg-gray-900/50 rounded-lg">
+                  {/* Basic Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Name *</label>
                       <input
                         type="text"
-                        value={characterIdInput}
-                        onChange={(e) => setCharacterIdInput(e.target.value)}
-                        placeholder="48690485 or https://www.dndbeyond.com/characters/48690485"
-                        className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded
-                                   text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') handleAddCharacter()
-                        }}
+                        value={manualCharacter.name}
+                        onChange={(e) => setManualCharacter({...manualCharacter, name: e.target.value})}
+                        placeholder="Character Name"
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
                       />
-                      <button
-                        onClick={handleAddCharacter}
-                        disabled={addingCharacter || !characterIdInput.trim()}
-                        className="px-6 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-600
-                                   rounded-lg font-semibold transition-colors duration-200 whitespace-nowrap"
-                      >
-                        {addingCharacter ? 'Adding...' : '+ Add'}
-                      </button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Paste character ID or full URL from D&D Beyond
-                    </p>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Class *</label>
+                      <input
+                        type="text"
+                        value={manualCharacter.class}
+                        onChange={(e) => setManualCharacter({...manualCharacter, class: e.target.value})}
+                        placeholder="Barbarian, Wizard, etc."
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Level</label>
+                      <input
+                        type="number"
+                        value={manualCharacter.level}
+                        onChange={(e) => setManualCharacter({...manualCharacter, level: parseInt(e.target.value) || 1})}
+                        min="1"
+                        max="20"
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Race/Species *</label>
+                      <input
+                        type="text"
+                        value={manualCharacter.race}
+                        onChange={(e) => setManualCharacter({...manualCharacter, race: e.target.value})}
+                        placeholder="Human, Elf, Dwarf, etc."
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Background</label>
+                      <input
+                        type="text"
+                        value={manualCharacter.background}
+                        onChange={(e) => setManualCharacter({...manualCharacter, background: e.target.value})}
+                        placeholder="Soldier, Sage, etc."
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Alignment</label>
+                      <input
+                        type="text"
+                        value={manualCharacter.alignment}
+                        onChange={(e) => setManualCharacter({...manualCharacter, alignment: e.target.value})}
+                        placeholder="Lawful Good, etc."
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Ability Scores */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-1">
-                      Character IDs or URLs (one per line)
-                    </label>
-                    <textarea
-                      value={bulkInput}
-                      onChange={(e) => setBulkInput(e.target.value)}
-                      placeholder={`Paste multiple character URLs or IDs:\n\nhttps://www.dndbeyond.com/characters/12345678\nhttps://www.dndbeyond.com/characters/87654321\n\nOr just IDs:\n12345678\n87654321`}
-                      rows={8}
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded
-                                 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500
-                                 font-mono text-sm"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Paste character URLs or IDs separated by newlines, commas, or spaces
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleBulkImport}
-                    disabled={addingCharacter || !bulkInput.trim()}
-                    className="w-full px-6 py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-600
-                               rounded-lg font-semibold transition-colors duration-200"
-                  >
-                    {addingCharacter ? bulkImportProgress.status : '📥 Import All Characters'}
-                  </button>
-                  {bulkImportProgress.total > 0 && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm text-gray-400">
-                        <span>{bulkImportProgress.status}</span>
-                        <span>{bulkImportProgress.current} / {bulkImportProgress.total}</span>
+                    <label className="block text-sm text-gray-400 mb-2">Ability Scores</label>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">STR</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.str}
+                          onChange={(e) => setManualCharacter({...manualCharacter, str: parseInt(e.target.value) || 10})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                        />
                       </div>
-                      <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                        <div
-                          className="h-full bg-purple-500 transition-all duration-300"
-                          style={{ width: `${(bulkImportProgress.current / bulkImportProgress.total) * 100}%` }}
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">DEX</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.dex}
+                          onChange={(e) => setManualCharacter({...manualCharacter, dex: parseInt(e.target.value) || 10})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">CON</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.con}
+                          onChange={(e) => setManualCharacter({...manualCharacter, con: parseInt(e.target.value) || 10})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">INT</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.int}
+                          onChange={(e) => setManualCharacter({...manualCharacter, int: parseInt(e.target.value) || 10})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">WIS</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.wis}
+                          onChange={(e) => setManualCharacter({...manualCharacter, wis: parseInt(e.target.value) || 10})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">CHA</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.cha}
+                          onChange={(e) => setManualCharacter({...manualCharacter, cha: parseInt(e.target.value) || 10})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
                         />
                       </div>
                     </div>
-                  )}
+                  </div>
+
+                  {/* HP and AC */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Current HP</label>
+                      <input
+                        type="number"
+                        value={manualCharacter.currentHp}
+                        onChange={(e) => setManualCharacter({...manualCharacter, currentHp: parseInt(e.target.value) || 0})}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Max HP</label>
+                      <input
+                        type="number"
+                        value={manualCharacter.maxHp}
+                        onChange={(e) => setManualCharacter({...manualCharacter, maxHp: parseInt(e.target.value) || 0})}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Temp HP</label>
+                      <input
+                        type="number"
+                        value={manualCharacter.tempHp}
+                        onChange={(e) => setManualCharacter({...manualCharacter, tempHp: parseInt(e.target.value) || 0})}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Combat Stats */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Armor Class (AC)</label>
+                      <input
+                        type="number"
+                        value={manualCharacter.ac}
+                        onChange={(e) => setManualCharacter({...manualCharacter, ac: parseInt(e.target.value) || 10})}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Initiative</label>
+                      <input
+                        type="number"
+                        value={manualCharacter.initiative}
+                        onChange={(e) => setManualCharacter({...manualCharacter, initiative: parseInt(e.target.value) || 0})}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Speed (ft)</label>
+                      <input
+                        type="number"
+                        value={manualCharacter.speed}
+                        onChange={(e) => setManualCharacter({...manualCharacter, speed: parseInt(e.target.value) || 30})}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Proficiency Bonus</label>
+                      <input
+                        type="number"
+                        value={manualCharacter.proficiencyBonus}
+                        onChange={(e) => setManualCharacter({...manualCharacter, proficiencyBonus: parseInt(e.target.value) || 2})}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Saving Throws */}
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Saving Throws</label>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">STR Save</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.strSave}
+                          onChange={(e) => setManualCharacter({...manualCharacter, strSave: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">DEX Save</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.dexSave}
+                          onChange={(e) => setManualCharacter({...manualCharacter, dexSave: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">CON Save</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.conSave}
+                          onChange={(e) => setManualCharacter({...manualCharacter, conSave: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">INT Save</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.intSave}
+                          onChange={(e) => setManualCharacter({...manualCharacter, intSave: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">WIS Save</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.wisSave}
+                          onChange={(e) => setManualCharacter({...manualCharacter, wisSave: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">CHA Save</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.chaSave}
+                          onChange={(e) => setManualCharacter({...manualCharacter, chaSave: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Skills */}
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Skills</label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Acrobatics (DEX)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.acrobatics}
+                          onChange={(e) => setManualCharacter({...manualCharacter, acrobatics: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Animal Handling (WIS)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.animalHandling}
+                          onChange={(e) => setManualCharacter({...manualCharacter, animalHandling: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Arcana (INT)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.arcana}
+                          onChange={(e) => setManualCharacter({...manualCharacter, arcana: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Athletics (STR)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.athletics}
+                          onChange={(e) => setManualCharacter({...manualCharacter, athletics: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Deception (CHA)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.deception}
+                          onChange={(e) => setManualCharacter({...manualCharacter, deception: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">History (INT)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.history}
+                          onChange={(e) => setManualCharacter({...manualCharacter, history: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Insight (WIS)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.insight}
+                          onChange={(e) => setManualCharacter({...manualCharacter, insight: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Intimidation (CHA)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.intimidation}
+                          onChange={(e) => setManualCharacter({...manualCharacter, intimidation: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Investigation (INT)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.investigation}
+                          onChange={(e) => setManualCharacter({...manualCharacter, investigation: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Medicine (WIS)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.medicine}
+                          onChange={(e) => setManualCharacter({...manualCharacter, medicine: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Nature (INT)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.nature}
+                          onChange={(e) => setManualCharacter({...manualCharacter, nature: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Perception (WIS)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.perception}
+                          onChange={(e) => setManualCharacter({...manualCharacter, perception: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Performance (CHA)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.performance}
+                          onChange={(e) => setManualCharacter({...manualCharacter, performance: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Persuasion (CHA)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.persuasion}
+                          onChange={(e) => setManualCharacter({...manualCharacter, persuasion: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Religion (INT)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.religion}
+                          onChange={(e) => setManualCharacter({...manualCharacter, religion: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Sleight of Hand (DEX)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.sleightOfHand}
+                          onChange={(e) => setManualCharacter({...manualCharacter, sleightOfHand: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Stealth (DEX)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.stealth}
+                          onChange={(e) => setManualCharacter({...manualCharacter, stealth: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Survival (WIS)</label>
+                        <input
+                          type="number"
+                          value={manualCharacter.survival}
+                          onChange={(e) => setManualCharacter({...manualCharacter, survival: parseInt(e.target.value) || 0})}
+                          className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Passive Perception & Inspiration */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Passive Perception</label>
+                      <input
+                        type="number"
+                        value={manualCharacter.passivePerception}
+                        onChange={(e) => setManualCharacter({...manualCharacter, passivePerception: parseInt(e.target.value) || 10})}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Inspiration</label>
+                      <div className="flex items-center h-full pt-2">
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={manualCharacter.inspiration}
+                            onChange={(e) => setManualCharacter({...manualCharacter, inspiration: e.target.checked})}
+                            className="w-5 h-5 bg-gray-700 border-gray-600 rounded"
+                          />
+                          <span className="ml-2 text-white">Has Inspiration</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Languages */}
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Languages</label>
+                    <textarea
+                      value={manualCharacter.languages}
+                      onChange={(e) => setManualCharacter({...manualCharacter, languages: e.target.value})}
+                      placeholder="Common, Elvish, Draconic, etc."
+                      rows={2}
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white resize-none"
+                    />
+                  </div>
+
+                  {/* Equipment */}
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Equipment</label>
+                    <textarea
+                      value={manualCharacter.equipment}
+                      onChange={(e) => setManualCharacter({...manualCharacter, equipment: e.target.value})}
+                      placeholder="Longsword, Shield, Leather Armor, etc."
+                      rows={3}
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white resize-none"
+                    />
+                  </div>
+
+                  {/* Features and Traits */}
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Features & Traits</label>
+                    <textarea
+                      value={manualCharacter.features}
+                      onChange={(e) => setManualCharacter({...manualCharacter, features: e.target.value})}
+                      placeholder="Racial traits, class features, feats, etc."
+                      rows={4}
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white resize-none"
+                    />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      onClick={handleManualAdd}
+                      disabled={addingCharacter}
+                      className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600
+                                 rounded-lg font-semibold transition-colors duration-200"
+                    >
+                      {addingCharacter ? '⏳ Adding...' : '✓ Add Character'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowManualForm(false)
+                        setManualCharacter({
+                          name: '', class: '', level: 1, race: '', background: '', alignment: '',
+                          str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
+                          currentHp: 0, maxHp: 0, tempHp: 0, ac: 10, initiative: 0, speed: 30,
+                          proficiencyBonus: 2, inspiration: false,
+                          strSave: 0, dexSave: 0, conSave: 0, intSave: 0, wisSave: 0, chaSave: 0,
+                          acrobatics: 0, animalHandling: 0, arcana: 0, athletics: 0, deception: 0,
+                          history: 0, insight: 0, intimidation: 0, investigation: 0, medicine: 0,
+                          nature: 0, perception: 0, performance: 0, persuasion: 0, religion: 0,
+                          sleightOfHand: 0, stealth: 0, survival: 0, passivePerception: 10,
+                          languages: '', equipment: '', features: '',
+                        })
+                      }}
+                      className="px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold
+                                 transition-colors duration-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -693,29 +1186,11 @@ export default function CampaignAdminPage() {
                         </div>
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleSyncCharacters(character.characterId)}
-                            disabled={syncingCharacters}
-                            className="px-3 py-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600
-                                       rounded text-sm transition-colors duration-200"
-                            title="Sync this character"
-                          >
-                            🔄
-                          </button>
-                          <a
-                            href={`https://www.dndbeyond.com/characters/${character.characterId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3 py-1 bg-purple-500 hover:bg-purple-600 rounded text-sm
-                                       transition-colors duration-200"
-                          >
-                            👁️ View
-                          </a>
-                          <button
                             onClick={() => handleRemoveCharacter(character.characterId)}
                             className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm
                                        transition-colors duration-200"
                           >
-                            🗑️
+                            🗑️ Remove
                           </button>
                         </div>
                       </div>
