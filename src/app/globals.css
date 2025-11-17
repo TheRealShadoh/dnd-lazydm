@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --purple-primary: #ab47bc;
+  --purple-dark: #7b1fa2;
+}
+
+body {
+  @apply bg-gray-950 text-gray-100;
+}
+
+/* Fantasy Dividers */
+.prose hr {
+  @apply border-none h-8 my-8;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 10"><path d="M0 5 Q 25 0, 50 5 T 100 5" stroke="%23ab47bc" stroke-width="1" fill="none"/><circle cx="50" cy="5" r="2" fill="%23ab47bc"/></svg>') center center no-repeat;
+  background-size: 80% 100%;
+}
+
+/* Dice Notation Styling */
+.dice-notation {
+  @apply inline-block px-2 py-1 rounded bg-gradient-to-br from-purple-500/20 to-purple-700/20;
+  @apply border border-purple-500/30 font-mono text-sm font-bold cursor-pointer;
+  @apply transition-all duration-200 hover:from-purple-500/40 hover:to-purple-700/40;
+  @apply hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/40;
+}
+
+/* Image Styling */
+.prose img {
+  @apply rounded-lg shadow-lg shadow-purple-500/30 transition-all duration-300;
+  @apply hover:shadow-xl hover:shadow-purple-500/50 hover:scale-[1.02];
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-purple-500/50 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-purple-500/70;
+}
