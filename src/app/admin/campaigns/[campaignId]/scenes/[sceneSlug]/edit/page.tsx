@@ -142,8 +142,8 @@ export default function EditScenePage() {
             <div className="mt-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
               <h3 className="font-semibold text-purple-400 mb-2">💡 Tips</h3>
               <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Use <code className="text-purple-300">&lt;DiceNotation value="1d20" /&gt;</code> for clickable dice</li>
-                <li>• Use <code className="text-purple-300">&lt;ImageLightbox src="..." /&gt;</code> for images with lightbox</li>
+                <li>• Use <code className="text-purple-300">&lt;DiceNotation value=&quot;1d20&quot; /&gt;</code> for clickable dice</li>
+                <li>• Use <code className="text-purple-300">&lt;ImageLightbox src=&quot;...&quot; /&gt;</code> for images with lightbox</li>
                 <li>• Reference monsters: <code className="text-purple-300">[Goblin](../reference/monsters#goblin)</code></li>
                 <li>• Add battle maps: <code className="text-purple-300">![Map](../img/map_name.jpg)</code></li>
               </ul>

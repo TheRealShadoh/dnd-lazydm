@@ -48,7 +48,7 @@ export function ImageLightbox({
       <Lightbox
         open={open}
         close={() => setOpen(false)}
-        slides={[{ src, alt, description: caption }]}
+        slides={[{ src, alt }]}
         plugins={[Zoom]}
         styles={{
           container: { backgroundColor: 'rgba(0, 0, 0, 0.95)' },
@@ -60,6 +60,22 @@ export function ImageLightbox({
         zoom={{
           maxZoomPixelRatio: 3,
           scrollToZoom: true,
+        }}
+        toolbar={{
+          buttons: [
+            <button
+              key="vtt"
+              type="button"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded font-semibold transition shadow-lg"
+              onClick={() => {
+                const vttUrl = `/vtt?map=${encodeURIComponent(src)}`
+                window.open(vttUrl, '_blank', 'width=1920,height=1080')
+              }}
+            >
+              🎲 Open VTT
+            </button>,
+            'close',
+          ],
         }}
       />
     </>
