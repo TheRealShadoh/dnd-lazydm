@@ -11,5 +11,8 @@
     "primary": "#ab47bc",
     "secondary": "#7b1fa2"
   },
-  "createdAt": "2025-01-16T00:00:00.000Z"
+  "createdAt": "2025-01-16T00:00:00.000Z",
+  "dndbeyond": {
+    "characters": []
+  }
 }

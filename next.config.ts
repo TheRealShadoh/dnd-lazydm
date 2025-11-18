@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
   },
+  // Exclude pdf-parse and its dependencies from webpack bundling
+  serverExternalPackages: ['pdf-parse', 'pdfjs-dist', '@napi-rs/canvas'],
 }
 
 const withMDX = createMDX({

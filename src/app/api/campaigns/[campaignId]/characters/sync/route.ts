@@ -58,10 +58,20 @@ export async function POST(
 
     const syncResults = []
 
+    // Get the authentication token from the request header
+    const authToken = request.headers.get('X-DnDBeyond-Token')
+
     for (const char of charactersToSync) {
       try {
+        // Forward the authentication token to the D&D Beyond API
+        const headers: HeadersInit = {}
+        if (authToken) {
+          headers['X-DnDBeyond-Token'] = authToken
+        }
+
         const characterResponse = await fetch(
-          `${request.nextUrl.origin}/api/dndbeyond/character/${char.characterId}`
+          `${request.nextUrl.origin}/api/dndbeyond/character/${char.characterId}`,
+          { headers }
         )
 
         if (characterResponse.ok) {
