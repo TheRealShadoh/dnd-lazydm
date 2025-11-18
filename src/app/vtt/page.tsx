@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { VTTCanvas } from '@/components/vtt/VTTCanvas'
 import { TokenControls } from '@/components/vtt/TokenControls'
 import { GridControls } from '@/components/vtt/GridControls'
+import { InitiativeTracker } from '@/components/vtt/InitiativeTracker'
 import { Token, GridSettings, VTTState } from '@/types/vtt'
 import { saveVTTState, loadVTTState, clearVTTState } from '@/lib/vtt-storage'
 
@@ -51,12 +52,19 @@ function VTTContent() {
     setTokens((prev) => [...prev, token])
   }, [])
 
-  const handleDeleteToken = useCallback((tokenId: string) => {
-    setTokens((prev) => prev.filter((t) => t.id !== tokenId))
-    if (selectedTokenId === tokenId) {
-      setSelectedTokenId(null)
-    }
-  }, [selectedTokenId])
+  const handleUpdateToken = useCallback((tokenId: string, updates: Partial<Token>) => {
+    setTokens((prev) => prev.map((t) => (t.id === tokenId ? { ...t, ...updates } : t)))
+  }, [])
+
+  const handleDeleteToken = useCallback(
+    (tokenId: string) => {
+      setTokens((prev) => prev.filter((t) => t.id !== tokenId))
+      if (selectedTokenId === tokenId) {
+        setSelectedTokenId(null)
+      }
+    },
+    [selectedTokenId]
+  )
 
   const handleClearAll = () => {
     if (confirm('Are you sure you want to clear all tokens? This cannot be undone.')) {
@@ -154,16 +162,27 @@ function VTTContent() {
 
           {/* Controls Sidebar */}
           <div className="space-y-4">
+            <InitiativeTracker
+              tokens={tokens}
+              onUpdateToken={handleUpdateToken}
+              selectedTokenId={selectedTokenId}
+              onTokenSelect={setSelectedTokenId}
+            />
             <TokenControls
               tokens={tokens}
               onAddToken={handleAddToken}
+              onUpdateToken={handleUpdateToken}
               onDeleteToken={handleDeleteToken}
               selectedTokenId={selectedTokenId}
               gridSize={gridSettings.size}
+              canvasWidth={1600}
+              canvasHeight={1200}
             />
             <GridControls
               gridSettings={gridSettings}
               onGridSettingsChange={setGridSettings}
+              tokens={tokens}
+              onTokensChange={setTokens}
             />
           </div>
         </div>

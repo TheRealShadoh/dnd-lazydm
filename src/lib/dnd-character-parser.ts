@@ -358,29 +358,42 @@ export class DndCharacterParser {
         { name: 'Survival', ability: 'WIS', modifier: getNum('Survival'), proficient: get('SurvivalProf') === 'P' },
       ],
       passivePerception: getNum('Passive1') || (10 + getNum('Perception')),
+      inspiration: get('Inspiration') === '•' || false,
 
-      // Proficiencies
+      // Combat
+      weaponAttacks: this.parseWeapons(fields),
+
+      // Equipment and Treasure
+      equipment: this.parseEquipment(get('Equipment')),
+      copper: getNum('CP') || 0,
+      silver: getNum('SP') || 0,
+      electrum: getNum('EP') || 0,
+      gold: getNum('GP') || 0,
+      platinum: getNum('PP') || 0,
+
+      // Proficiencies and Languages
+      languages: this.extractProficiencies(get('ProficienciesLang'), 'LANGUAGES'),
       armorProficiencies: this.extractProficiencies(get('ProficienciesLang'), 'ARMOR'),
       weaponProficiencies: this.extractProficiencies(get('ProficienciesLang'), 'WEAPONS'),
       toolProficiencies: this.extractProficiencies(get('ProficienciesLang'), 'TOOLS'),
 
       // Features and Traits
       features: this.parseFeatures(get('FeaturesTraits1') + '\n' + get('FeaturesTraits2') + '\n' + get('FeaturesTraits3')),
-      personalityTraits: get('PersonalityTraits '),
-      ideals: get('Ideals'),
-      bonds: get('Bonds'),
-      flaws: get('Flaws'),
+      personalityTraits: get('PersonalityTraits ') || '',
+      ideals: get('Ideals') || '',
+      bonds: get('Bonds') || '',
+      flaws: get('Flaws') || '',
 
       // Spellcasting
       spellcastingClass: get('spellCastingClass0'),
       spellcastingAbility: get('spellCastingAbility0'),
-      spellSaveDC: getNum('spellSaveDC0'),
-      spellAttackBonus: getNum('spellAtkBonus0'),
+      spellSaveDC: getNum('spellSaveDC0') || 0,
+      spellAttackBonus: getNum('spellAtkBonus0') || 0,
       spells: this.parseSpells(fields),
 
       // Additional Info
-      backstory: get('Backstory'),
-      alliesAndOrganizations: get('AlliesOrganizations'),
+      backstory: get('Backstory') || '',
+      alliesAndOrganizations: get('AlliesOrganizations') || '',
       additionalFeatures: get('AdditionalNotes1') + '\n' + get('AdditionalNotes2'),
       treasure: `${getNum('CP')} cp, ${getNum('SP')} sp, ${getNum('EP')} ep, ${getNum('GP')} gp, ${getNum('PP')} pp`,
     }
@@ -444,6 +457,57 @@ export class DndCharacterParser {
     }
 
     return spells
+  }
+
+  /**
+   * Parse weapon attacks
+   */
+  private static parseWeapons(fields: Record<string, string>): WeaponAttack[] {
+    const weapons: WeaponAttack[] = []
+
+    // Parse weapon fields (Wpn Name, Wpn2 Name, Wpn3 Name)
+    for (let i = 1; i <= 3; i++) {
+      const prefix = i === 1 ? 'Wpn' : `Wpn${i}`
+      const name = fields[`${prefix} Name`]
+      if (!name) continue
+
+      const hitBonus = parseInt(fields[`${prefix} AtkBonus`]) || 0
+      const damage = fields[`${prefix} Damage`] || '1d6'
+
+      weapons.push({
+        name,
+        hitBonus,
+        damage,
+        damageType: fields[`${prefix} DamageType`] || 'slashing',
+        range: fields[`${prefix} Range`],
+      })
+    }
+
+    return weapons
+  }
+
+  /**
+   * Parse equipment
+   */
+  private static parseEquipment(equipmentText: string): Equipment[] {
+    if (!equipmentText) return []
+
+    const items: Equipment[] = []
+    const lines = equipmentText.split('\n').filter((line) => line.trim())
+
+    for (const line of lines) {
+      // Try to parse quantity and name (e.g., "2 Daggers" or "Rope, 50ft")
+      const match = line.match(/^(\d+)?\s*(.+)$/)
+      if (match) {
+        const [, quantityStr, name] = match
+        items.push({
+          name: name.trim(),
+          quantity: quantityStr ? parseInt(quantityStr) : 1,
+        })
+      }
+    }
+
+    return items
   }
 
   private static parseText(text: string): CharacterSheet {
