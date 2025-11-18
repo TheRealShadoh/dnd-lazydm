@@ -1,45 +1,71 @@
 'use client'
 
 import { useState } from 'react'
-import { Token, TokenType, CreatureSize, TOKEN_COLORS } from '@/types/vtt'
+import { Token, TokenType, CreatureSize, TOKEN_COLORS, TokenCondition } from '@/types/vtt'
 import { nanoid } from 'nanoid'
 
 interface TokenControlsProps {
   tokens: Token[]
   onAddToken: (token: Token) => void
   onDeleteToken: (tokenId: string) => void
+  onUpdateToken: (tokenId: string, updates: Partial<Token>) => void
   selectedTokenId: string | null
   gridSize: number
+  canvasWidth: number
+  canvasHeight: number
 }
 
 export function TokenControls({
   tokens,
   onAddToken,
   onDeleteToken,
+  onUpdateToken,
   selectedTokenId,
   gridSize,
+  canvasWidth,
+  canvasHeight,
 }: TokenControlsProps) {
   const [tokenType, setTokenType] = useState<TokenType>('monster')
   const [tokenSize, setTokenSize] = useState<CreatureSize>('medium')
   const [tokenColor, setTokenColor] = useState(TOKEN_COLORS[0])
   const [tokenNumber, setTokenNumber] = useState('')
   const [tokenLabel, setTokenLabel] = useState('')
+  const [tokenName, setTokenName] = useState('')
   const [tokenImageUrl, setTokenImageUrl] = useState('')
   const [imageSource, setImageSource] = useState<'color' | 'url' | 'player'>('color')
+  const [tokenHp, setTokenHp] = useState('')
+  const [tokenMaxHp, setTokenMaxHp] = useState('')
+  const [tokenAc, setTokenAc] = useState('')
+  const [tokenInitiative, setTokenInitiative] = useState('')
 
   const selectedToken = tokens.find((t) => t.id === selectedTokenId)
 
   const handleCreateToken = () => {
+    // Calculate grid-centered spawn position (center of canvas, snapped to grid)
+    const centerX = canvasWidth / 2
+    const centerY = canvasHeight / 2
+    const snapToGridCenter = (value: number, gridSize: number) => {
+      return Math.round((value - gridSize / 2) / gridSize) * gridSize + gridSize / 2
+    }
+    const spawnX = snapToGridCenter(centerX, gridSize)
+    const spawnY = snapToGridCenter(centerY, gridSize)
+
     const newToken: Token = {
       id: nanoid(),
-      x: 200,
-      y: 200,
+      x: spawnX,
+      y: spawnY,
       size: tokenSize,
       type: tokenType,
       color: imageSource === 'color' ? tokenColor : undefined,
       number: tokenNumber ? parseInt(tokenNumber) : undefined,
       label: tokenLabel || undefined,
+      name: tokenName || undefined,
       imageUrl: imageSource === 'url' ? tokenImageUrl : undefined,
+      currentHp: tokenHp ? parseInt(tokenHp) : undefined,
+      maxHp: tokenMaxHp ? parseInt(tokenMaxHp) : undefined,
+      ac: tokenAc ? parseInt(tokenAc) : undefined,
+      initiative: tokenInitiative ? parseInt(tokenInitiative) : undefined,
+      conditions: [],
     }
 
     onAddToken(newToken)
@@ -184,6 +210,18 @@ export function TokenControls({
           />
         </div>
 
+        {/* Name */}
+        <div>
+          <label className="block text-sm text-gray-300 mb-1">Name (optional)</label>
+          <input
+            type="text"
+            value={tokenName}
+            onChange={(e) => setTokenName(e.target.value)}
+            placeholder="Goblin Scout"
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+          />
+        </div>
+
         {/* Label */}
         <div>
           <label className="block text-sm text-gray-300 mb-1">Label (optional)</label>
@@ -196,6 +234,50 @@ export function TokenControls({
           />
         </div>
 
+        {/* Combat Stats */}
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">HP</label>
+            <input
+              type="number"
+              value={tokenHp}
+              onChange={(e) => setTokenHp(e.target.value)}
+              placeholder="Current"
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">Max HP</label>
+            <input
+              type="number"
+              value={tokenMaxHp}
+              onChange={(e) => setTokenMaxHp(e.target.value)}
+              placeholder="Max"
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">AC</label>
+            <input
+              type="number"
+              value={tokenAc}
+              onChange={(e) => setTokenAc(e.target.value)}
+              placeholder="Armor Class"
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">Initiative</label>
+            <input
+              type="number"
+              value={tokenInitiative}
+              onChange={(e) => setTokenInitiative(e.target.value)}
+              placeholder="Init"
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
+            />
+          </div>
+        </div>
+
         {/* Create Button */}
         <button
           onClick={handleCreateToken}
@@ -205,33 +287,192 @@ export function TokenControls({
         </button>
       </div>
 
-      {/* Selected Token Info */}
+      {/* Selected Token Editor */}
       {selectedToken && (
         <div className="pt-4 border-t border-gray-700">
-          <h4 className="font-semibold text-purple-300 mb-2">Selected Token</h4>
-          <div className="space-y-2 text-sm">
-            <p className="text-gray-300">
-              <span className="text-gray-400">Type:</span> {selectedToken.type}
-            </p>
-            <p className="text-gray-300">
-              <span className="text-gray-400">Size:</span> {selectedToken.size}
-            </p>
-            {selectedToken.number !== undefined && (
-              <p className="text-gray-300">
-                <span className="text-gray-400">Number:</span> {selectedToken.number}
-              </p>
+          <h4 className="font-semibold text-purple-300 mb-3">Edit Selected Token</h4>
+          <div className="space-y-3 text-sm">
+            {/* Name */}
+            {selectedToken.name !== undefined && (
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Name</label>
+                <input
+                  type="text"
+                  value={selectedToken.name || ''}
+                  onChange={(e) => onUpdateToken(selectedToken.id, { name: e.target.value })}
+                  className="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-white text-sm"
+                />
+              </div>
             )}
-            {selectedToken.label && (
-              <p className="text-gray-300">
-                <span className="text-gray-400">Label:</span> {selectedToken.label}
-              </p>
+
+            {/* HP */}
+            {selectedToken.maxHp !== undefined && (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Current HP</label>
+                  <input
+                    type="number"
+                    value={selectedToken.currentHp || 0}
+                    onChange={(e) =>
+                      onUpdateToken(selectedToken.id, { currentHp: parseInt(e.target.value) || 0 })
+                    }
+                    className="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-white text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Max HP</label>
+                  <input
+                    type="number"
+                    value={selectedToken.maxHp || 0}
+                    onChange={(e) =>
+                      onUpdateToken(selectedToken.id, { maxHp: parseInt(e.target.value) || 0 })
+                    }
+                    className="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-white text-sm"
+                  />
+                </div>
+              </div>
             )}
-            <button
-              onClick={() => onDeleteToken(selectedToken.id)}
-              className="w-full px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition"
-            >
-              Delete Token
-            </button>
+
+            {/* AC and Initiative */}
+            <div className="grid grid-cols-2 gap-2">
+              {selectedToken.ac !== undefined && (
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">AC</label>
+                  <input
+                    type="number"
+                    value={selectedToken.ac || 0}
+                    onChange={(e) =>
+                      onUpdateToken(selectedToken.id, { ac: parseInt(e.target.value) || 0 })
+                    }
+                    className="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-white text-sm"
+                  />
+                </div>
+              )}
+              {selectedToken.initiative !== undefined && (
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Initiative</label>
+                  <input
+                    type="number"
+                    value={selectedToken.initiative || 0}
+                    onChange={(e) =>
+                      onUpdateToken(selectedToken.id, { initiative: parseInt(e.target.value) || 0 })
+                    }
+                    className="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-white text-sm"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Conditions */}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Conditions</label>
+              <div className="flex flex-wrap gap-1">
+                {(['prone', 'stunned', 'poisoned', 'blinded', 'invisible', 'concentrating'] as TokenCondition[]).map(
+                  (condition) => {
+                    const hasCondition = selectedToken.conditions?.includes(condition)
+                    return (
+                      <button
+                        key={condition}
+                        onClick={() => {
+                          const currentConditions = selectedToken.conditions || []
+                          const newConditions = hasCondition
+                            ? currentConditions.filter((c) => c !== condition)
+                            : [...currentConditions, condition]
+                          onUpdateToken(selectedToken.id, { conditions: newConditions })
+                        }}
+                        className={`px-2 py-1 rounded text-xs transition ${
+                          hasCondition
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        {condition}
+                      </button>
+                    )
+                  }
+                )}
+              </div>
+            </div>
+
+            {/* Quick HP adjustment */}
+            {selectedToken.currentHp !== undefined && selectedToken.maxHp !== undefined && (
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Quick HP Adjust</label>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => {
+                      const newHp = Math.max(0, (selectedToken.currentHp || 0) - 5)
+                      onUpdateToken(selectedToken.id, { currentHp: newHp })
+                    }}
+                    className="flex-1 px-2 py-1 bg-red-700 hover:bg-red-600 rounded text-xs"
+                  >
+                    -5
+                  </button>
+                  <button
+                    onClick={() => {
+                      const newHp = Math.max(0, (selectedToken.currentHp || 0) - 1)
+                      onUpdateToken(selectedToken.id, { currentHp: newHp })
+                    }}
+                    className="flex-1 px-2 py-1 bg-red-700 hover:bg-red-600 rounded text-xs"
+                  >
+                    -1
+                  </button>
+                  <button
+                    onClick={() => {
+                      const newHp = Math.min(
+                        selectedToken.maxHp || 0,
+                        (selectedToken.currentHp || 0) + 1
+                      )
+                      onUpdateToken(selectedToken.id, { currentHp: newHp })
+                    }}
+                    className="flex-1 px-2 py-1 bg-green-700 hover:bg-green-600 rounded text-xs"
+                  >
+                    +1
+                  </button>
+                  <button
+                    onClick={() => {
+                      const newHp = Math.min(
+                        selectedToken.maxHp || 0,
+                        (selectedToken.currentHp || 0) + 5
+                      )
+                      onUpdateToken(selectedToken.id, { currentHp: newHp })
+                    }}
+                    className="flex-1 px-2 py-1 bg-green-700 hover:bg-green-600 rounded text-xs"
+                  >
+                    +5
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Info */}
+            <p className="text-gray-400 text-xs">
+              Type: {selectedToken.type} | Size: {selectedToken.size}
+            </p>
+
+            {/* Actions */}
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => {
+                  const duplicate = {
+                    ...selectedToken,
+                    id: nanoid(),
+                    x: selectedToken.x + gridSize,
+                    y: selectedToken.y + gridSize,
+                  }
+                  onAddToken(duplicate)
+                }}
+                className="flex-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition"
+              >
+                Duplicate
+              </button>
+              <button
+                onClick={() => onDeleteToken(selectedToken.id)}
+                className="flex-1 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

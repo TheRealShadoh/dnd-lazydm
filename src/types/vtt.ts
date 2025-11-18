@@ -2,6 +2,23 @@ export type TokenType = 'player' | 'monster' | 'custom'
 
 export type CreatureSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan'
 
+export type TokenCondition =
+  | 'blinded'
+  | 'charmed'
+  | 'deafened'
+  | 'frightened'
+  | 'grappled'
+  | 'incapacitated'
+  | 'invisible'
+  | 'paralyzed'
+  | 'petrified'
+  | 'poisoned'
+  | 'prone'
+  | 'restrained'
+  | 'stunned'
+  | 'unconscious'
+  | 'concentrating'
+
 export interface Token {
   id: string
   x: number
@@ -12,7 +29,13 @@ export interface Token {
   number?: number
   imageUrl?: string
   label?: string
-  playerId?: string // For future player import feature
+  playerId?: string
+  currentHp?: number
+  maxHp?: number
+  ac?: number
+  initiative?: number
+  conditions?: TokenCondition[]
+  name?: string
 }
 
 export interface GridSettings {
