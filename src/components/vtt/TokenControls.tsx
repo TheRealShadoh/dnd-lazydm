@@ -1,8 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Token, TokenType, CreatureSize, TOKEN_COLORS, TokenCondition } from '@/types/vtt'
 import { nanoid } from 'nanoid'
+
+interface CampaignImage {
+  url: string
+  campaign: string
+  name: string
+}
 
 interface TokenControlsProps {
   tokens: Token[]
@@ -32,13 +38,33 @@ export function TokenControls({
   const [tokenLabel, setTokenLabel] = useState('')
   const [tokenName, setTokenName] = useState('')
   const [tokenImageUrl, setTokenImageUrl] = useState('')
-  const [imageSource, setImageSource] = useState<'color' | 'url' | 'player'>('color')
+  const [imageSource, setImageSource] = useState<'color' | 'url' | 'campaign' | 'player'>('color')
+  const [campaignImages, setCampaignImages] = useState<CampaignImage[]>([])
+  const [loadingImages, setLoadingImages] = useState(false)
   const [tokenHp, setTokenHp] = useState('')
   const [tokenMaxHp, setTokenMaxHp] = useState('')
   const [tokenAc, setTokenAc] = useState('')
   const [tokenInitiative, setTokenInitiative] = useState('')
 
   const selectedToken = tokens.find((t) => t.id === selectedTokenId)
+
+  // Load campaign images when campaign source is selected
+  useEffect(() => {
+    if (imageSource === 'campaign' && campaignImages.length === 0) {
+      setLoadingImages(true)
+      fetch('/api/campaigns/images')
+        .then((res) => res.json())
+        .then((data) => {
+          setCampaignImages(data.images || [])
+        })
+        .catch((error) => {
+          console.error('Failed to load campaign images:', error)
+        })
+        .finally(() => {
+          setLoadingImages(false)
+        })
+    }
+  }, [imageSource, campaignImages.length])
 
   const handleCreateToken = () => {
     // Calculate grid-centered spawn position (center of canvas, snapped to grid)
@@ -60,7 +86,7 @@ export function TokenControls({
       number: tokenNumber ? parseInt(tokenNumber) : undefined,
       label: tokenLabel || undefined,
       name: tokenName || undefined,
-      imageUrl: imageSource === 'url' ? tokenImageUrl : undefined,
+      imageUrl: imageSource === 'url' || imageSource === 'campaign' ? tokenImageUrl : undefined,
       currentHp: tokenHp ? parseInt(tokenHp) : undefined,
       maxHp: tokenMaxHp ? parseInt(tokenMaxHp) : undefined,
       ac: tokenAc ? parseInt(tokenAc) : undefined,
@@ -118,10 +144,10 @@ export function TokenControls({
         {/* Image Source */}
         <div>
           <label className="block text-sm text-gray-300 mb-1">Image Source</label>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setImageSource('color')}
-              className={`px-3 py-1 rounded ${
+              className={`px-3 py-2 rounded text-sm ${
                 imageSource === 'color'
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-700 text-gray-300'
@@ -131,17 +157,27 @@ export function TokenControls({
             </button>
             <button
               onClick={() => setImageSource('url')}
-              className={`px-3 py-1 rounded ${
+              className={`px-3 py-2 rounded text-sm ${
                 imageSource === 'url'
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-700 text-gray-300'
               }`}
             >
-              Image URL
+              URL
+            </button>
+            <button
+              onClick={() => setImageSource('campaign')}
+              className={`px-3 py-2 rounded text-sm ${
+                imageSource === 'campaign'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-700 text-gray-300'
+              }`}
+            >
+              Campaign Images
             </button>
             <button
               onClick={() => setImageSource('player')}
-              className={`px-3 py-1 rounded ${
+              className={`px-3 py-2 rounded text-sm ${
                 imageSource === 'player'
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-700 text-gray-300'
@@ -183,6 +219,62 @@ export function TokenControls({
               placeholder="/path/to/image.jpg"
               className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
             />
+          </div>
+        )}
+
+        {/* Campaign Images Browser */}
+        {imageSource === 'campaign' && (
+          <div>
+            <label className="block text-sm text-gray-300 mb-2">
+              Select Campaign Image {tokenImageUrl && '✓'}
+            </label>
+            {loadingImages ? (
+              <div className="p-4 text-center text-gray-400">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2"></div>
+                Loading images...
+              </div>
+            ) : campaignImages.length > 0 ? (
+              <div className="max-h-64 overflow-y-auto bg-gray-800 border border-gray-700 rounded p-2">
+                <div className="grid grid-cols-3 gap-2">
+                  {campaignImages.map((img) => (
+                    <button
+                      key={img.url}
+                      onClick={() => setTokenImageUrl(img.url)}
+                      className={`relative aspect-square rounded overflow-hidden border-2 transition ${
+                        tokenImageUrl === img.url
+                          ? 'border-purple-500 ring-2 ring-purple-500'
+                          : 'border-gray-600 hover:border-gray-500'
+                      }`}
+                      title={`${img.name}\n(${img.campaign})`}
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23374151" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af" font-size="40"%3E?%3C/text%3E%3C/svg%3E'
+                        }}
+                      />
+                      {tokenImageUrl === img.url && (
+                        <div className="absolute inset-0 bg-purple-500 bg-opacity-20 flex items-center justify-center">
+                          <span className="text-white text-2xl">✓</span>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  {campaignImages.length} image{campaignImages.length !== 1 ? 's' : ''} available
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 bg-gray-800 border border-gray-700 rounded text-center">
+                <p className="text-sm text-gray-400">No campaign images found</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Add images to /public/campaigns/[campaign-name]/img/
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -292,6 +384,115 @@ export function TokenControls({
         <div className="pt-4 border-t border-gray-700">
           <h4 className="font-semibold text-purple-300 mb-3">Edit Selected Token</h4>
           <div className="space-y-3 text-sm">
+            {/* Image Editor */}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Token Image</label>
+
+              {/* Current Image Preview */}
+              {selectedToken.imageUrl && (
+                <div className="mb-2 flex items-center gap-2">
+                  <img
+                    src={selectedToken.imageUrl}
+                    alt="Current token"
+                    className="w-12 h-12 rounded-full border-2 border-gray-600 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="48" height="48"%3E%3Crect fill="%23374151" width="48" height="48"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af" font-size="20"%3E?%3C/text%3E%3C/svg%3E'
+                    }}
+                  />
+                  <span className="text-xs text-gray-400 flex-1 truncate">
+                    {selectedToken.imageUrl}
+                  </span>
+                </div>
+              )}
+
+              {/* Image Source Selector */}
+              <div className="grid grid-cols-3 gap-1 mb-2">
+                <button
+                  onClick={() => {
+                    // Remove image, use color instead
+                    onUpdateToken(selectedToken.id, {
+                      imageUrl: undefined,
+                      color: selectedToken.color || TOKEN_COLORS[0]
+                    })
+                  }}
+                  className="px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs"
+                >
+                  Use Color
+                </button>
+                <button
+                  onClick={() => {
+                    const url = prompt('Enter image URL:', selectedToken.imageUrl || '')
+                    if (url !== null) {
+                      onUpdateToken(selectedToken.id, {
+                        imageUrl: url || undefined,
+                        color: undefined
+                      })
+                    }
+                  }}
+                  className="px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs"
+                >
+                  URL
+                </button>
+                <button
+                  onClick={() => {
+                    // Toggle campaign images view
+                    const currentSource = (selectedToken as any)._editingImage
+                    onUpdateToken(selectedToken.id, {
+                      _editingImage: currentSource === 'campaign' ? undefined : 'campaign'
+                    } as any)
+                  }}
+                  className="px-2 py-1 bg-purple-600 hover:bg-purple-700 rounded text-xs"
+                >
+                  Campaign
+                </button>
+              </div>
+
+              {/* Campaign Images Selector for Selected Token */}
+              {(selectedToken as any)._editingImage === 'campaign' && (
+                <div className="bg-gray-800 border border-gray-700 rounded p-2">
+                  {loadingImages && campaignImages.length === 0 ? (
+                    <div className="p-4 text-center text-gray-400">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500 mx-auto mb-2"></div>
+                      Loading...
+                    </div>
+                  ) : campaignImages.length > 0 ? (
+                    <div className="max-h-48 overflow-y-auto">
+                      <div className="grid grid-cols-3 gap-1">
+                        {campaignImages.map((img) => (
+                          <button
+                            key={img.url}
+                            onClick={() => {
+                              onUpdateToken(selectedToken.id, {
+                                imageUrl: img.url,
+                                color: undefined,
+                                _editingImage: undefined
+                              } as any)
+                            }}
+                            className={`relative aspect-square rounded overflow-hidden border ${
+                              selectedToken.imageUrl === img.url
+                                ? 'border-purple-500'
+                                : 'border-gray-600 hover:border-gray-500'
+                            }`}
+                            title={img.name}
+                          >
+                            <img
+                              src={img.url}
+                              alt={img.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400 text-center py-2">
+                      No campaign images found
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Name */}
             {selectedToken.name !== undefined && (
               <div>
