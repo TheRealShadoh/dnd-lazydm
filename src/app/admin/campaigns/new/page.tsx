@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { MarkdownEditor } from '@/components/editor/MarkdownEditor'
 import Link from 'next/link'
+import { useToast } from '@/hooks/useToast'
 
 export default function NewCampaignPage() {
   const router = useRouter()
+  const toast = useToast()
   const [loading, setLoading] = useState(false)
 
   // Form state
@@ -61,13 +63,14 @@ export default function NewCampaignPage() {
 
       if (response.ok) {
         const data = await response.json()
+        toast.success('Campaign created successfully!')
         router.push(`/admin/campaigns/${data.slug}`)
       } else {
-        alert('Failed to create campaign')
+        toast.error('Failed to create campaign')
       }
     } catch (error) {
       console.error('Error creating campaign:', error)
-      alert('Error creating campaign')
+      toast.error('Error creating campaign')
     } finally {
       setLoading(false)
     }

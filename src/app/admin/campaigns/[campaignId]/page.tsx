@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useConfirm } from '@/hooks/useConfirm'
+import { useToast } from '@/hooks/useToast'
 
 interface CampaignMetadata {
   name: string
@@ -41,6 +43,8 @@ interface DnDBeyondCharacter {
 export default function CampaignAdminPage() {
   const params = useParams()
   const campaignId = params.campaignId as string
+  const { confirm } = useConfirm()
+  const toast = useToast()
   const [campaign, setCampaign] = useState<CampaignMetadata | null>(null)
   const [scenes, setScenes] = useState<Scene[]>([])
   const [monsters, setMonsters] = useState<Monster[]>([])
@@ -151,7 +155,14 @@ export default function CampaignAdminPage() {
 
 
   const handleRemoveCharacter = async (characterId: string) => {
-    if (!confirm('Are you sure you want to remove this character?')) return
+    const confirmed = await confirm({
+      title: 'Remove Character',
+      message: 'Are you sure you want to remove this character from the campaign?',
+      confirmText: 'Remove',
+      variant: 'danger',
+    })
+
+    if (!confirmed) return
 
     try {
       const response = await fetch(
@@ -161,19 +172,20 @@ export default function CampaignAdminPage() {
 
       if (response.ok) {
         setCharacters((prev) => prev.filter((c) => c.characterId !== characterId))
+        toast.success('Character removed successfully')
       } else {
-        alert('Failed to remove character')
+        toast.error('Failed to remove character')
       }
     } catch (error) {
       console.error('Error removing character:', error)
-      alert('Failed to remove character')
+      toast.error('Failed to remove character')
     }
   }
 
 
   const handleManualAdd = async () => {
     if (!manualCharacter.name || !manualCharacter.class || !manualCharacter.race) {
-      alert('Please fill in at least Name, Class, and Race')
+      toast.warning('Please fill in at least Name, Class, and Race')
       return
     }
 
@@ -263,14 +275,14 @@ export default function CampaignAdminPage() {
           languages: '', equipment: '', features: '',
         })
         setShowManualForm(false)
-        alert(`Character "${characterData.name}" added successfully!`)
+        toast.success(`Character "${characterData.name}" added successfully!`)
       } else {
         const error = await response.json()
-        alert(`Failed to add character: ${error.error}`)
+        toast.error(`Failed to add character: ${error.error}`)
       }
     } catch (error) {
       console.error('Character add error:', error)
-      alert(`Failed to add character: ${(error as Error).message}`)
+      toast.error(`Failed to add character: ${(error as Error).message}`)
     } finally {
       setAddingCharacter(false)
     }
@@ -278,7 +290,7 @@ export default function CampaignAdminPage() {
 
   const handlePdfImport = async () => {
     if (!pdfFile) {
-      alert('Please select a PDF file first')
+      toast.warning('Please select a PDF file first')
       return
     }
 
@@ -301,16 +313,16 @@ export default function CampaignAdminPage() {
         setCharacters((prev) => [...prev, data.character])
         setPdfFile(null)
         setTimeout(() => setPdfProgress(''), 2000)
-        alert(`Character "${data.character.name}" imported from PDF!`)
+        toast.success(`Character "${data.character.name}" imported from PDF!`)
       } else {
         const error = await response.json()
         setPdfProgress('')
-        alert(`Failed to import PDF: ${error.error}`)
+        toast.error(`Failed to import PDF: ${error.error}`)
       }
     } catch (error) {
       console.error('PDF import error:', error)
       setPdfProgress('')
-      alert(`Failed to import PDF: ${(error as Error).message}`)
+      toast.error(`Failed to import PDF: ${(error as Error).message}`)
     } finally {
       setUploadingPdf(false)
     }
@@ -431,7 +443,7 @@ export default function CampaignAdminPage() {
           </Link>
 
           <button
-            onClick={() => alert('Image upload coming soon!')}
+            onClick={() => toast.info('Image upload feature coming soon!')}
             className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 hover:border-purple-500
                        transition-all duration-200 group text-left"
           >
