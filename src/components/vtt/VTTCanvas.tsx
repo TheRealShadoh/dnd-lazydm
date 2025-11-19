@@ -68,8 +68,7 @@ export function VTTCanvas({
     }
 
     loadImages()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokens])
+  }, [tokens, tokenImages])
 
   // Draw everything
   useEffect(() => {
@@ -305,7 +304,7 @@ export function VTTCanvas({
         ctx.fill()
       }
     }
-  }, [mapImage, tokens, gridSettings, selectedTokenId, tokenImages, measureMode, measureStart, measureEnd])
+  }, [mapImage, tokens, gridSettings, selectedTokenId, measureMode, measureStart, measureEnd, tokenImages])
 
   const getTokenAtPosition = (x: number, y: number): Token | null => {
     // Check tokens in reverse order (top to bottom)

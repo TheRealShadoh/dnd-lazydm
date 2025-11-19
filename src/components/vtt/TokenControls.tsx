@@ -41,6 +41,7 @@ export function TokenControls({
   const [imageSource, setImageSource] = useState<'color' | 'url' | 'campaign' | 'player'>('color')
   const [campaignImages, setCampaignImages] = useState<CampaignImage[]>([])
   const [loadingImages, setLoadingImages] = useState(false)
+  const [hasLoadedImages, setHasLoadedImages] = useState(false)
   const [tokenHp, setTokenHp] = useState('')
   const [tokenMaxHp, setTokenMaxHp] = useState('')
   const [tokenAc, setTokenAc] = useState('')
@@ -50,21 +51,23 @@ export function TokenControls({
 
   // Load campaign images when campaign source is selected
   useEffect(() => {
-    if (imageSource === 'campaign' && campaignImages.length === 0) {
+    if (imageSource === 'campaign' && !hasLoadedImages) {
       setLoadingImages(true)
       fetch('/api/campaigns/images')
         .then((res) => res.json())
         .then((data) => {
           setCampaignImages(data.images || [])
+          setHasLoadedImages(true)
         })
         .catch((error) => {
           console.error('Failed to load campaign images:', error)
+          setHasLoadedImages(true)
         })
         .finally(() => {
           setLoadingImages(false)
         })
     }
-  }, [imageSource, campaignImages.length])
+  }, [imageSource, hasLoadedImages])
 
   const handleCreateToken = () => {
     // Calculate grid-centered spawn position (center of canvas, snapped to grid)
