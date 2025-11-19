@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      # Mount local campaigns directories for persistence
+      - ./src/app/campaigns:/app/src/app/campaigns
+      - ./public/campaigns:/app/public/campaigns
+      # Optional: Mount an external campaigns data directory
+      # Uncomment and modify the path below to use an external campaigns folder
+      # - /path/to/your/external/campaigns:/app/data/campaigns
+    restart: unless-stopped

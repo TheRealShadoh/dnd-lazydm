@@ -19,14 +19,16 @@ export interface GridSettings {
   enabled: boolean
   size: number // Size in pixels
   snapToGrid: boolean
+  tokenBaseSize?: number // Base token size independent of grid
 }
 
 export interface VTTState {
   mapImageUrl: string
   tokens: Token[]
   gridSettings: GridSettings
-  canvasWidth: number
-  canvasHeight: number
+  canvasWidth?: number
+  canvasHeight?: number
+  scale?: number
 }
 
 // Size multipliers for creature sizes (in grid squares)

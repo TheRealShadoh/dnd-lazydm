@@ -17,17 +17,28 @@ interface Campaign {
 export default function AdminDashboard() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadCampaigns = async () => {
       try {
+        console.log('[Campaign Manager] Fetching campaigns from /api/campaigns')
         const response = await fetch('/api/campaigns')
+        console.log('[Campaign Manager] Response status:', response.status)
+
         if (response.ok) {
           const data = await response.json()
+          console.log('[Campaign Manager] Campaigns loaded:', data.campaigns?.length || 0)
+          console.log('[Campaign Manager] Campaign data:', data.campaigns)
           setCampaigns(data.campaigns || [])
+        } else {
+          const errorText = await response.text()
+          console.error('[Campaign Manager] Failed to load campaigns:', errorText)
+          setError(`Failed to load campaigns: ${response.status} ${response.statusText}`)
         }
       } catch (error) {
-        console.error('Error loading campaigns:', error)
+        console.error('[Campaign Manager] Error loading campaigns:', error)
+        setError(error instanceof Error ? error.message : 'Unknown error occurred')
       } finally {
         setLoading(false)
       }
@@ -41,7 +52,17 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-purple-400 mb-2">Campaign Manager</h1>
+            <div className="flex items-center gap-4 mb-2">
+              <Link
+                href="/"
+                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold
+                           transition-colors duration-200 flex items-center gap-2"
+              >
+                <span>←</span>
+                Back
+              </Link>
+              <h1 className="text-4xl font-bold text-purple-400">Campaign Manager</h1>
+            </div>
             <p className="text-gray-400">Create and manage your D&D campaigns</p>
           </div>
           <Link
@@ -61,7 +82,20 @@ export default function AdminDashboard() {
               <div className="text-4xl mb-4">⏳</div>
               <p className="text-gray-400">Loading campaigns...</p>
             </div>
-          ) : (
+          ) : error ? (
+            <div className="col-span-full text-center py-16">
+              <div className="text-4xl mb-4">⚠️</div>
+              <h3 className="text-xl font-bold text-red-400 mb-2">Error Loading Campaigns</h3>
+              <p className="text-gray-400 mb-4">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg font-semibold
+                           transition-colors duration-200"
+              >
+                Retry
+              </button>
+            </div>
+          ) : campaigns.length > 0 ? (
             campaigns.map((campaign) => (
               <Link
                 key={campaign.slug}
@@ -130,10 +164,8 @@ export default function AdminDashboard() {
                 </div>
               </Link>
             ))
-          )}
-
-          {/* Empty State */}
-          {campaigns.length === 0 && (
+          ) : (
+            /* Empty State */
             <div className="col-span-full text-center py-16">
               <div className="text-6xl mb-4">📚</div>
               <h3 className="text-xl font-bold text-gray-400 mb-2">No campaigns yet</h3>

@@ -19,6 +19,9 @@ function VTTContent() {
     size: 50,
     snapToGrid: true,
   })
+  const [canvasWidth, setCanvasWidth] = useState(1600)
+  const [canvasHeight, setCanvasHeight] = useState(1200)
+  const [scale, setScale] = useState(1)
   const [isLoaded, setIsLoaded] = useState(false)
 
   // Load saved state on mount
@@ -28,6 +31,9 @@ function VTTContent() {
       if (savedState) {
         setTokens(savedState.tokens)
         setGridSettings(savedState.gridSettings)
+        if (savedState.canvasWidth) setCanvasWidth(savedState.canvasWidth)
+        if (savedState.canvasHeight) setCanvasHeight(savedState.canvasHeight)
+        if (savedState.scale) setScale(savedState.scale)
       }
       setIsLoaded(true)
     }
@@ -40,12 +46,13 @@ function VTTContent() {
         mapImageUrl,
         tokens,
         gridSettings,
-        canvasWidth: 1600,
-        canvasHeight: 1200,
+        canvasWidth,
+        canvasHeight,
+        scale,
       }
       saveVTTState(state)
     }
-  }, [tokens, gridSettings, mapImageUrl, isLoaded])
+  }, [tokens, gridSettings, canvasWidth, canvasHeight, scale, mapImageUrl, isLoaded])
 
   const handleAddToken = useCallback((token: Token) => {
     setTokens((prev) => [...prev, token])
@@ -78,6 +85,9 @@ function VTTContent() {
         size: 50,
         snapToGrid: true,
       })
+      setCanvasWidth(1600)
+      setCanvasHeight(1200)
+      setScale(1)
       if (mapImageUrl) {
         clearVTTState(mapImageUrl)
       }
@@ -130,14 +140,21 @@ function VTTContent() {
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_350px] gap-4">
           {/* Canvas Area */}
           <div className="flex flex-col">
-            <VTTCanvas
-              mapImageUrl={mapImageUrl}
-              tokens={tokens}
-              gridSettings={gridSettings}
-              onTokensChange={setTokens}
-              selectedTokenId={selectedTokenId}
-              onTokenSelect={setSelectedTokenId}
-            />
+            <div className="overflow-auto border border-gray-700 rounded-lg bg-gray-900 p-4">
+              <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+                <VTTCanvas
+                  mapImageUrl={mapImageUrl}
+                  tokens={tokens}
+                  gridSettings={gridSettings}
+                  onTokensChange={setTokens}
+                  selectedTokenId={selectedTokenId}
+                  onTokenSelect={setSelectedTokenId}
+                  canvasWidth={canvasWidth}
+                  canvasHeight={canvasHeight}
+                  scale={scale}
+                />
+              </div>
+            </div>
 
             {/* Instructions */}
             <div className="mt-4 p-4 bg-gray-900 border border-gray-700 rounded-lg">
@@ -154,6 +171,58 @@ function VTTContent() {
 
           {/* Controls Sidebar */}
           <div className="space-y-4">
+            {/* Zoom Controls */}
+            <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 space-y-4">
+              <h3 className="text-xl font-bold text-purple-400 mb-4">Zoom / Scale</h3>
+
+              <div>
+                <label htmlFor="scale" className="block text-sm text-gray-300 mb-2">
+                  Scale: {Math.round(scale * 100)}%
+                </label>
+                <input
+                  type="range"
+                  id="scale"
+                  min="0.25"
+                  max="2"
+                  step="0.05"
+                  value={scale}
+                  onChange={(e) => setScale(parseFloat(e.target.value))}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>25%</span>
+                  <span>200%</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setScale(0.5)}
+                  className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded text-sm transition"
+                >
+                  50%
+                </button>
+                <button
+                  onClick={() => setScale(1)}
+                  className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded text-sm transition"
+                >
+                  100%
+                </button>
+                <button
+                  onClick={() => setScale(1.5)}
+                  className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded text-sm transition"
+                >
+                  150%
+                </button>
+              </div>
+
+              <div className="pt-3 border-t border-gray-700">
+                <p className="text-xs text-gray-500">
+                  💡 Tip: Use zoom to make the map larger or smaller without changing token positions.
+                </p>
+              </div>
+            </div>
+
             <TokenControls
               tokens={tokens}
               onAddToken={handleAddToken}

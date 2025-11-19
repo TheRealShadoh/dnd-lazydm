@@ -10,6 +10,9 @@ interface VTTCanvasProps {
   onTokensChange: (tokens: Token[]) => void
   selectedTokenId: string | null
   onTokenSelect: (tokenId: string | null) => void
+  canvasWidth?: number
+  canvasHeight?: number
+  scale?: number
 }
 
 export function VTTCanvas({
@@ -19,6 +22,9 @@ export function VTTCanvas({
   onTokensChange,
   selectedTokenId,
   onTokenSelect,
+  canvasWidth = 1600,
+  canvasHeight = 1200,
+  scale = 1,
 }: VTTCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -102,7 +108,9 @@ export function VTTCanvas({
       isSelected: boolean,
       gridSize: number
     ) => {
-      const tokenSize = gridSize * CREATURE_SIZE_MULTIPLIER[token.size]
+      // Use tokenBaseSize if set, otherwise fall back to grid size
+      const baseSize = gridSettings.tokenBaseSize || gridSize
+      const tokenSize = baseSize * CREATURE_SIZE_MULTIPLIER[token.size]
       const tokenImage = token.imageUrl ? tokenImages.get(token.id) : null
 
       // Draw token circle or image
@@ -175,7 +183,8 @@ export function VTTCanvas({
     // Check tokens in reverse order (top to bottom)
     for (let i = tokens.length - 1; i >= 0; i--) {
       const token = tokens[i]
-      const tokenSize = gridSettings.size * CREATURE_SIZE_MULTIPLIER[token.size]
+      const baseSize = gridSettings.tokenBaseSize || gridSettings.size
+      const tokenSize = baseSize * CREATURE_SIZE_MULTIPLIER[token.size]
       const distance = Math.sqrt((token.x - x) ** 2 + (token.y - y) ** 2)
 
       if (distance <= tokenSize / 2) {
@@ -186,7 +195,8 @@ export function VTTCanvas({
   }
 
   const snapToGrid = (value: number, gridSize: number): number => {
-    return Math.round(value / gridSize) * gridSize
+    // Snap to the center of grid squares instead of intersections
+    return Math.floor(value / gridSize) * gridSize + gridSize / 2
   }
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -194,8 +204,8 @@ export function VTTCanvas({
     if (!canvas) return
 
     const rect = canvas.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+    const x = (e.clientX - rect.left) / scale
+    const y = (e.clientY - rect.top) / scale
 
     const clickedToken = getTokenAtPosition(x, y)
 
@@ -218,8 +228,8 @@ export function VTTCanvas({
     if (!canvas) return
 
     const rect = canvas.getBoundingClientRect()
-    let x = e.clientX - rect.left - dragOffset.x
-    let y = e.clientY - rect.top - dragOffset.y
+    let x = (e.clientX - rect.left) / scale - dragOffset.x
+    let y = (e.clientY - rect.top) / scale - dragOffset.y
 
     // Apply snap to grid if enabled
     if (gridSettings.enabled && gridSettings.snapToGrid) {
@@ -241,8 +251,8 @@ export function VTTCanvas({
   return (
     <canvas
       ref={canvasRef}
-      width={1600}
-      height={1200}
+      width={canvasWidth}
+      height={canvasHeight}
       className="border border-gray-700 rounded-lg shadow-2xl cursor-crosshair"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
