@@ -320,7 +320,7 @@ export default function CampaignAdminPage() {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4">⏳</div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-500 mx-auto mb-4"></div>
           <p className="text-gray-400">Loading campaign...</p>
         </div>
       </div>
@@ -331,11 +331,15 @@ export default function CampaignAdminPage() {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4">❌</div>
-          <p className="text-gray-400">Campaign not found</p>
+          <div className="w-16 h-16 mb-4 mx-auto rounded-full bg-red-500/20 flex items-center justify-center">
+            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <p className="text-gray-400 mb-4">Campaign not found</p>
           <Link
             href="/admin"
-            className="mt-4 inline-block px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg
+            className="inline-block px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg
                        font-semibold transition-colors duration-200"
           >
             Back to Admin
@@ -363,10 +367,10 @@ export default function CampaignAdminPage() {
             )}
             {(campaign.level || campaign.players || campaign.duration || campaign.genre) && (
               <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
-                {campaign.level && <div>📊 Level {campaign.level}</div>}
-                {campaign.players && <div>👥 {campaign.players} players</div>}
-                {campaign.duration && <div>⏱️ {campaign.duration}</div>}
-                {campaign.genre && <div>🎭 {campaign.genre}</div>}
+                {campaign.level && <div className="px-3 py-1 bg-gray-800 rounded">Level {campaign.level}</div>}
+                {campaign.players && <div className="px-3 py-1 bg-gray-800 rounded">{campaign.players} players</div>}
+                {campaign.duration && <div className="px-3 py-1 bg-gray-800 rounded">{campaign.duration}</div>}
+                {campaign.genre && <div className="px-3 py-1 bg-gray-800 rounded">{campaign.genre}</div>}
               </div>
             )}
           </div>
@@ -375,9 +379,13 @@ export default function CampaignAdminPage() {
               href={`/campaigns/${campaignId}`}
               target="_blank"
               className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold
-                         transition-colors duration-200"
+                         transition-colors duration-200 flex items-center gap-2"
             >
-              👁️ Preview
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Preview
             </Link>
           </div>
         </div>
@@ -389,7 +397,12 @@ export default function CampaignAdminPage() {
             className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 hover:border-purple-500
                        transition-all duration-200 group"
           >
-            <div className="text-3xl mb-3">📝</div>
+            <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center
+                            group-hover:bg-purple-500/30 transition-colors">
+              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
             <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
               Add Scene
             </h3>
@@ -403,7 +416,12 @@ export default function CampaignAdminPage() {
             className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 hover:border-purple-500
                        transition-all duration-200 group"
           >
-            <div className="text-3xl mb-3">🐉</div>
+            <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center
+                            group-hover:bg-purple-500/30 transition-colors">
+              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+              </svg>
+            </div>
             <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
               Add Monster
             </h3>
@@ -417,7 +435,12 @@ export default function CampaignAdminPage() {
             className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 hover:border-purple-500
                        transition-all duration-200 group text-left"
           >
-            <div className="text-3xl mb-3">🖼️</div>
+            <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center
+                            group-hover:bg-purple-500/30 transition-colors">
+              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
             <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
               Upload Images
             </h3>
