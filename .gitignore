@@ -43,3 +43,17 @@ next-env.d.ts
 
 # OS
 Thumbs.db
+
+# Claude Code
+.claude/
+
+# Test files
+test-*.js
+test-*.mjs
+
+# Build artifacts
+dnd-react@*
+next
+
+# PDFs (character sheets, etc)
+*.pdf
