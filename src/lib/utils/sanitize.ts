@@ -141,7 +141,7 @@ export function sanitizeFilename(filename: string): string {
     '.pdf', '.json', '.mdx', '.md', '.txt'
   ]
 
-  const safExt = ext.toLowerCase()
+  const safeExt = ext.toLowerCase()
   if (ext && !allowedExtensions.includes(safeExt)) {
     throw new Error(`Invalid file extension: ${ext}`)
   }
