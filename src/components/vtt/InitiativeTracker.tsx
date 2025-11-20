@@ -8,6 +8,8 @@ interface InitiativeTrackerProps {
   onUpdateToken: (tokenId: string, updates: Partial<Token>) => void
   selectedTokenId: string | null
   onTokenSelect: (tokenId: string | null) => void
+  readOnly?: boolean
+  userTokenIds?: string[]
 }
 
 export function InitiativeTracker({
@@ -15,6 +17,8 @@ export function InitiativeTracker({
   onUpdateToken,
   selectedTokenId,
   onTokenSelect,
+  readOnly = false,
+  userTokenIds,
 }: InitiativeTrackerProps) {
   const [currentTurn, setCurrentTurn] = useState(0)
   const [roundNumber, setRoundNumber] = useState(1)
@@ -81,28 +85,30 @@ export function InitiativeTracker({
         <div className="text-sm text-gray-400">Round {roundNumber}</div>
       </div>
 
-      {/* Combat Controls */}
-      <div className="flex gap-2">
-        <button
-          onClick={handlePrevTurn}
-          className="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded text-sm font-semibold transition"
-        >
-          ← Previous
-        </button>
-        <button
-          onClick={handleNextTurn}
-          className="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm font-semibold transition"
-        >
-          Next Turn →
-        </button>
-        <button
-          onClick={handleReset}
-          className="px-3 py-2 bg-red-700 hover:bg-red-600 text-white rounded text-sm font-semibold transition"
-          title="Reset to round 1"
-        >
-          Reset
-        </button>
-      </div>
+      {/* Combat Controls - Hidden in read-only mode */}
+      {!readOnly && (
+        <div className="flex gap-2">
+          <button
+            onClick={handlePrevTurn}
+            className="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded text-sm font-semibold transition"
+          >
+            ← Previous
+          </button>
+          <button
+            onClick={handleNextTurn}
+            className="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm font-semibold transition"
+          >
+            Next Turn →
+          </button>
+          <button
+            onClick={handleReset}
+            className="px-3 py-2 bg-red-700 hover:bg-red-600 text-white rounded text-sm font-semibold transition"
+            title="Reset to round 1"
+          >
+            Reset
+          </button>
+        </div>
+      )}
 
       {/* Combatant List */}
       <div className="space-y-1 max-h-64 overflow-y-auto">

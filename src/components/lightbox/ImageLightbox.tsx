@@ -13,6 +13,8 @@ interface ImageLightboxProps {
   className?: string
   width?: number
   height?: number
+  campaignId?: string
+  vttId?: string
 }
 
 export function ImageLightbox({
@@ -22,6 +24,8 @@ export function ImageLightbox({
   className = '',
   width = 800,
   height = 600,
+  campaignId,
+  vttId,
 }: ImageLightboxProps) {
   const [open, setOpen] = useState(false)
 
@@ -68,7 +72,10 @@ export function ImageLightbox({
               type="button"
               className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded font-semibold transition shadow-lg"
               onClick={() => {
-                const vttUrl = `/vtt?map=${encodeURIComponent(src)}`
+                const params = new URLSearchParams({ map: src })
+                if (campaignId) params.set('campaignId', campaignId)
+                if (vttId) params.set('vttId', vttId)
+                const vttUrl = `/vtt?${params.toString()}`
                 window.open(vttUrl, '_blank', 'width=1920,height=1080')
               }}
             >

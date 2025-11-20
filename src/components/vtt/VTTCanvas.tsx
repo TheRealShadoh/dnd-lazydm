@@ -13,6 +13,7 @@ interface VTTCanvasProps {
   canvasWidth?: number
   canvasHeight?: number
   scale?: number
+  userTokenIds?: string[] // Token IDs the user can control (for player mode)
 }
 
 export function VTTCanvas({
@@ -25,6 +26,7 @@ export function VTTCanvas({
   canvasWidth = 1600,
   canvasHeight = 1200,
   scale = 1,
+  userTokenIds,
 }: VTTCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -112,6 +114,7 @@ export function VTTCanvas({
     ) => {
       const tokenSize = gridSize * CREATURE_SIZE_MULTIPLIER[token.size]
       const tokenImage = token.imageUrl ? tokenImages.get(token.id) : null
+      const isUserToken = userTokenIds && userTokenIds.includes(token.id)
 
       // Draw token circle or image
       if (tokenImage) {
@@ -139,6 +142,9 @@ export function VTTCanvas({
       // Draw border
       if (isSelected) {
         ctx.strokeStyle = '#FFD700'
+        ctx.lineWidth = 3
+      } else if (isUserToken) {
+        ctx.strokeStyle = '#22C55E' // Green border for user-controlled tokens
         ctx.lineWidth = 3
       } else {
         ctx.strokeStyle = '#000000'
@@ -348,11 +354,17 @@ export function VTTCanvas({
 
     if (clickedToken) {
       onTokenSelect(clickedToken.id)
-      setIsDragging(true)
-      setDragOffset({
-        x: x - clickedToken.x,
-        y: y - clickedToken.y,
-      })
+
+      // Check if user can control this token (in player mode)
+      const canControl = !userTokenIds || userTokenIds.includes(clickedToken.id)
+
+      if (canControl) {
+        setIsDragging(true)
+        setDragOffset({
+          x: x - clickedToken.x,
+          y: y - clickedToken.y,
+        })
+      }
     } else {
       onTokenSelect(null)
     }

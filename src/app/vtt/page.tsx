@@ -2,10 +2,12 @@
 
 import { Suspense, useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { VTTCanvas } from '@/components/vtt/VTTCanvas'
 import { TokenControls } from '@/components/vtt/TokenControls'
 import { GridControls } from '@/components/vtt/GridControls'
 import { InitiativeTracker } from '@/components/vtt/InitiativeTracker'
+import { ShareControl } from '@/components/vtt/ShareControl'
 import { Token, GridSettings, VTTState } from '@/types/vtt'
 import { saveVTTState, loadVTTState, clearVTTState } from '@/lib/vtt-storage'
 import { useConfirm } from '@/hooks/useConfirm'
@@ -13,7 +15,10 @@ import { useConfirm } from '@/hooks/useConfirm'
 function VTTContent() {
   const searchParams = useSearchParams()
   const mapImageUrl = searchParams.get('map') || ''
+  const campaignId = searchParams.get('campaignId') || ''
+  const vttId = searchParams.get('vttId') || mapImageUrl // Use map URL as vttId if not provided
   const { confirm } = useConfirm()
+  const { data: session } = useSession()
 
   const [tokens, setTokens] = useState<Token[]>([])
   const [selectedTokenId, setSelectedTokenId] = useState<string | null>(null)
@@ -198,6 +203,11 @@ function VTTContent() {
               selectedTokenId={selectedTokenId}
               onTokenSelect={setSelectedTokenId}
             />
+
+            {/* Share Control for DMs */}
+            {session && campaignId && vttId && (
+              <ShareControl campaignId={campaignId} vttId={vttId} />
+            )}
 
             {/* Zoom Controls */}
             <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 space-y-4">
