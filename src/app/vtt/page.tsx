@@ -8,10 +8,12 @@ import { GridControls } from '@/components/vtt/GridControls'
 import { InitiativeTracker } from '@/components/vtt/InitiativeTracker'
 import { Token, GridSettings, VTTState } from '@/types/vtt'
 import { saveVTTState, loadVTTState, clearVTTState } from '@/lib/vtt-storage'
+import { useConfirm } from '@/hooks/useConfirm'
 
 function VTTContent() {
   const searchParams = useSearchParams()
   const mapImageUrl = searchParams.get('map') || ''
+  const { confirm } = useConfirm()
 
   const [tokens, setTokens] = useState<Token[]>([])
   const [selectedTokenId, setSelectedTokenId] = useState<string | null>(null)
@@ -73,19 +75,29 @@ function VTTContent() {
     [selectedTokenId]
   )
 
-  const handleClearAll = () => {
-    if (confirm('Are you sure you want to clear all tokens? This cannot be undone.')) {
+  const handleClearAll = async () => {
+    const confirmed = await confirm({
+      title: 'Clear All Tokens',
+      message: 'Are you sure you want to clear all tokens? This cannot be undone.',
+      confirmText: 'Clear All',
+      variant: 'danger',
+    })
+
+    if (confirmed) {
       setTokens([])
       setSelectedTokenId(null)
     }
   }
 
-  const handleResetVTT = () => {
-    if (
-      confirm(
-        'Are you sure you want to reset the VTT? This will clear all tokens and grid settings.'
-      )
-    ) {
+  const handleResetVTT = async () => {
+    const confirmed = await confirm({
+      title: 'Reset VTT',
+      message: 'Are you sure you want to reset the VTT? This will clear all tokens and grid settings.',
+      confirmText: 'Reset',
+      variant: 'danger',
+    })
+
+    if (confirmed) {
       setTokens([])
       setSelectedTokenId(null)
       setGridSettings({
@@ -145,7 +157,7 @@ function VTTContent() {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_350px] gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-4">
           {/* Canvas Area */}
           <div className="flex flex-col">
             <div className="overflow-auto border border-gray-700 rounded-lg bg-gray-900 p-4">
@@ -165,7 +177,7 @@ function VTTContent() {
             </div>
 
             {/* Instructions */}
-            <div className="mt-4 p-4 bg-gray-900 border border-gray-700 rounded-lg">
+            <div className="mt-4 p-4 bg-gray-900 border border-gray-700 rounded-lg lg:hidden">
               <h3 className="font-semibold text-purple-300 mb-2">Instructions</h3>
               <ul className="text-sm text-gray-400 space-y-1">
                 <li>• Click and drag tokens to move them on the map</li>
@@ -177,8 +189,9 @@ function VTTContent() {
             </div>
           </div>
 
-          {/* Controls Sidebar */}
-          <div className="space-y-4">
+          {/* Controls Sidebar - Fixed height with internal scrolling */}
+          <div className="space-y-4 max-h-[calc(100vh-140px)] overflow-y-auto sticky top-4 pr-2
+                          scrollbar-thin scrollbar-thumb-purple-500 scrollbar-track-gray-800">
             <InitiativeTracker
               tokens={tokens}
               onUpdateToken={handleUpdateToken}

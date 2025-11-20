@@ -47,14 +47,16 @@ export function DiceWidget() {
       {/* Toggle Button */}
       <motion.button
         className="fixed bottom-4 right-4 z-50 w-14 h-14 rounded-full bg-purple-gradient shadow-lg
-                   flex items-center justify-center text-2xl hover:shadow-xl hover:shadow-purple-500/50
-                   transition-shadow duration-200"
+                   flex items-center justify-center hover:shadow-xl hover:shadow-purple-500/50
+                   transition-shadow duration-200 border-2 border-purple-400"
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         title="Dice Roller"
       >
-        🎲
+        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+        </svg>
       </motion.button>
 
       {/* Widget Panel */}

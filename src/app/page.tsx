@@ -8,9 +8,8 @@ export default function HomePage() {
           <Link
             href="/admin"
             className="px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg font-semibold
-                       transition-colors duration-200 flex items-center gap-2"
+                       transition-colors duration-200"
           >
-            <span>⚙️</span>
             Campaign Manager
           </Link>
         </div>
@@ -57,28 +56,44 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold mb-8 text-center">Interactive Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="p-6 rounded-lg bg-gray-900/50 border border-purple-500/20">
-              <div className="text-4xl mb-3">🎲</div>
+              <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+              </div>
               <h3 className="font-bold mb-2">Auto-Detecting Dice Roller</h3>
               <p className="text-sm text-gray-400">
                 Click any dice notation (1d20, 2d6+3, etc.) to roll instantly
               </p>
             </div>
             <div className="p-6 rounded-lg bg-gray-900/50 border border-purple-500/20">
-              <div className="text-4xl mb-3">🖼️</div>
+              <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
               <h3 className="font-bold mb-2">Image Lightbox</h3>
               <p className="text-sm text-gray-400">
                 Click any image to view in full-screen
               </p>
             </div>
             <div className="p-6 rounded-lg bg-gray-900/50 border border-purple-500/20">
-              <div className="text-4xl mb-3">💾</div>
+              <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+              </div>
               <h3 className="font-bold mb-2">State Persistence</h3>
               <p className="text-sm text-gray-400">
                 Dice history, preferences, and progress saved locally
               </p>
             </div>
             <div className="p-6 rounded-lg bg-gray-900/50 border border-purple-500/20">
-              <div className="text-4xl mb-3">📱</div>
+              <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
               <h3 className="font-bold mb-2">Mobile Responsive</h3>
               <p className="text-sm text-gray-400">
                 Run sessions from tablets or phones

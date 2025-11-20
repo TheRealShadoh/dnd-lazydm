@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useConfirm } from '@/hooks/useConfirm'
+import { useToast } from '@/hooks/useToast'
+import { ManualCharacterForm } from '@/components/characters/ManualCharacterForm'
+import { Button } from '@/components/ui/Button'
 
 interface CampaignMetadata {
   name: string
@@ -41,6 +45,8 @@ interface DnDBeyondCharacter {
 export default function CampaignAdminPage() {
   const params = useParams()
   const campaignId = params.campaignId as string
+  const { confirm } = useConfirm()
+  const toast = useToast()
   const [campaign, setCampaign] = useState<CampaignMetadata | null>(null)
   const [scenes, setScenes] = useState<Scene[]>([])
   const [monsters, setMonsters] = useState<Monster[]>([])
@@ -151,7 +157,14 @@ export default function CampaignAdminPage() {
 
 
   const handleRemoveCharacter = async (characterId: string) => {
-    if (!confirm('Are you sure you want to remove this character?')) return
+    const confirmed = await confirm({
+      title: 'Remove Character',
+      message: 'Are you sure you want to remove this character from the campaign?',
+      confirmText: 'Remove',
+      variant: 'danger',
+    })
+
+    if (!confirmed) return
 
     try {
       const response = await fetch(
@@ -161,19 +174,20 @@ export default function CampaignAdminPage() {
 
       if (response.ok) {
         setCharacters((prev) => prev.filter((c) => c.characterId !== characterId))
+        toast.success('Character removed successfully')
       } else {
-        alert('Failed to remove character')
+        toast.error('Failed to remove character')
       }
     } catch (error) {
       console.error('Error removing character:', error)
-      alert('Failed to remove character')
+      toast.error('Failed to remove character')
     }
   }
 
 
   const handleManualAdd = async () => {
     if (!manualCharacter.name || !manualCharacter.class || !manualCharacter.race) {
-      alert('Please fill in at least Name, Class, and Race')
+      toast.warning('Please fill in at least Name, Class, and Race')
       return
     }
 
@@ -263,14 +277,14 @@ export default function CampaignAdminPage() {
           languages: '', equipment: '', features: '',
         })
         setShowManualForm(false)
-        alert(`Character "${characterData.name}" added successfully!`)
+        toast.success(`Character "${characterData.name}" added successfully!`)
       } else {
         const error = await response.json()
-        alert(`Failed to add character: ${error.error}`)
+        toast.error(`Failed to add character: ${error.error}`)
       }
     } catch (error) {
       console.error('Character add error:', error)
-      alert(`Failed to add character: ${(error as Error).message}`)
+      toast.error(`Failed to add character: ${(error as Error).message}`)
     } finally {
       setAddingCharacter(false)
     }
@@ -278,7 +292,7 @@ export default function CampaignAdminPage() {
 
   const handlePdfImport = async () => {
     if (!pdfFile) {
-      alert('Please select a PDF file first')
+      toast.warning('Please select a PDF file first')
       return
     }
 
@@ -301,16 +315,16 @@ export default function CampaignAdminPage() {
         setCharacters((prev) => [...prev, data.character])
         setPdfFile(null)
         setTimeout(() => setPdfProgress(''), 2000)
-        alert(`Character "${data.character.name}" imported from PDF!`)
+        toast.success(`Character "${data.character.name}" imported from PDF!`)
       } else {
         const error = await response.json()
         setPdfProgress('')
-        alert(`Failed to import PDF: ${error.error}`)
+        toast.error(`Failed to import PDF: ${error.error}`)
       }
     } catch (error) {
       console.error('PDF import error:', error)
       setPdfProgress('')
-      alert(`Failed to import PDF: ${(error as Error).message}`)
+      toast.error(`Failed to import PDF: ${(error as Error).message}`)
     } finally {
       setUploadingPdf(false)
     }
@@ -320,7 +334,7 @@ export default function CampaignAdminPage() {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4">⏳</div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-500 mx-auto mb-4"></div>
           <p className="text-gray-400">Loading campaign...</p>
         </div>
       </div>
@@ -331,11 +345,15 @@ export default function CampaignAdminPage() {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4">❌</div>
-          <p className="text-gray-400">Campaign not found</p>
+          <div className="w-16 h-16 mb-4 mx-auto rounded-full bg-red-500/20 flex items-center justify-center">
+            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <p className="text-gray-400 mb-4">Campaign not found</p>
           <Link
             href="/admin"
-            className="mt-4 inline-block px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg
+            className="inline-block px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg
                        font-semibold transition-colors duration-200"
           >
             Back to Admin
@@ -363,10 +381,10 @@ export default function CampaignAdminPage() {
             )}
             {(campaign.level || campaign.players || campaign.duration || campaign.genre) && (
               <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
-                {campaign.level && <div>📊 Level {campaign.level}</div>}
-                {campaign.players && <div>👥 {campaign.players} players</div>}
-                {campaign.duration && <div>⏱️ {campaign.duration}</div>}
-                {campaign.genre && <div>🎭 {campaign.genre}</div>}
+                {campaign.level && <div className="px-3 py-1 bg-gray-800 rounded">Level {campaign.level}</div>}
+                {campaign.players && <div className="px-3 py-1 bg-gray-800 rounded">{campaign.players} players</div>}
+                {campaign.duration && <div className="px-3 py-1 bg-gray-800 rounded">{campaign.duration}</div>}
+                {campaign.genre && <div className="px-3 py-1 bg-gray-800 rounded">{campaign.genre}</div>}
               </div>
             )}
           </div>
@@ -375,9 +393,13 @@ export default function CampaignAdminPage() {
               href={`/campaigns/${campaignId}`}
               target="_blank"
               className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold
-                         transition-colors duration-200"
+                         transition-colors duration-200 flex items-center gap-2"
             >
-              👁️ Preview
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Preview
             </Link>
           </div>
         </div>
@@ -389,7 +411,12 @@ export default function CampaignAdminPage() {
             className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 hover:border-purple-500
                        transition-all duration-200 group"
           >
-            <div className="text-3xl mb-3">📝</div>
+            <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center
+                            group-hover:bg-purple-500/30 transition-colors">
+              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
             <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
               Add Scene
             </h3>
@@ -403,7 +430,12 @@ export default function CampaignAdminPage() {
             className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 hover:border-purple-500
                        transition-all duration-200 group"
           >
-            <div className="text-3xl mb-3">🐉</div>
+            <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center
+                            group-hover:bg-purple-500/30 transition-colors">
+              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+              </svg>
+            </div>
             <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
               Add Monster
             </h3>
@@ -413,11 +445,16 @@ export default function CampaignAdminPage() {
           </Link>
 
           <button
-            onClick={() => alert('Image upload coming soon!')}
+            onClick={() => toast.info('Image upload feature coming soon!')}
             className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 hover:border-purple-500
                        transition-all duration-200 group text-left"
           >
-            <div className="text-3xl mb-3">🖼️</div>
+            <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center
+                            group-hover:bg-purple-500/30 transition-colors">
+              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
             <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
               Upload Images
             </h3>
@@ -459,7 +496,7 @@ export default function CampaignAdminPage() {
                         className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm
                                    transition-colors duration-200"
                       >
-                        ✏️ Edit
+                        Edit
                       </Link>
                       <Link
                         href={scene.path}
@@ -467,15 +504,19 @@ export default function CampaignAdminPage() {
                         className="px-3 py-1 bg-purple-500 hover:bg-purple-600 rounded text-sm
                                    transition-colors duration-200"
                       >
-                        👁️ View
+                        View
                       </Link>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                <div className="text-3xl mb-2">📝</div>
+              <div className="text-center py-8 text-gray-400">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
                 <p>No scenes yet. Create your first scene to get started.</p>
               </div>
             )}
@@ -508,7 +549,11 @@ export default function CampaignAdminPage() {
                       className="flex items-center justify-between p-3 bg-gray-800 rounded-lg"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">🐉</span>
+                        <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                          </svg>
+                        </div>
                         <div>
                           <div className="font-semibold text-white">{monster.name}</div>
                           <div className="text-sm text-gray-500">CR {monster.cr}</div>
@@ -524,13 +569,17 @@ export default function CampaignAdminPage() {
                     className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600
                                rounded-lg text-sm transition-colors duration-200"
                   >
-                    👁️ View Full Reference Page
+                    View Full Reference Page
                   </Link>
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                <div className="text-3xl mb-2">🐉</div>
+              <div className="text-center py-8 text-gray-400">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>
+                </div>
                 <p>No monsters yet. Create your first monster stat block to get started.</p>
               </div>
             )}
