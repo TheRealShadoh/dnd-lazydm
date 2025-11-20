@@ -310,7 +310,7 @@ export function VTTCanvas({
         ctx.fill()
       }
     }
-  }, [mapImage, tokens, gridSettings, selectedTokenId, measureMode, measureStart, measureEnd, tokenImages])
+  }, [mapImage, tokens, gridSettings, selectedTokenId, measureMode, measureStart, measureEnd, tokenImages, userTokenIds])
 
   const getTokenAtPosition = (x: number, y: number): Token | null => {
     // Check tokens in reverse order (top to bottom)

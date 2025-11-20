@@ -107,7 +107,7 @@ export default async function DashboardPage() {
               No campaigns yet
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              You haven't been assigned to any campaigns yet. Ask your DM to add you!
+              You haven&apos;t been assigned to any campaigns yet. Ask your DM to add you!
             </p>
             <Link
               href="/admin"
