@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createUser, findUserByEmail } from '@/lib/auth/user-storage';
 import { z } from 'zod';
+import { authRateLimiter } from '@/lib/security/rate-limit';
+import { getClientIdentifier } from '@/lib/security/client-identifier';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -10,6 +12,17 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const identifier = getClientIdentifier(request);
+    if (!authRateLimiter.check(identifier)) {
+      const resetTime = authRateLimiter.resetTime(identifier);
+      const waitMinutes = Math.ceil((resetTime - Date.now()) / 60000);
+      return NextResponse.json(
+        { error: `Too many registration attempts. Please try again in ${waitMinutes} minutes.` },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
 
     // Validate input

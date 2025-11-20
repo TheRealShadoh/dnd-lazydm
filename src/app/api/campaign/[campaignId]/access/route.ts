@@ -8,6 +8,8 @@ import {
   isOwner,
   isDM,
 } from '@/lib/campaign/access-control';
+import { apiRateLimiter } from '@/lib/security/rate-limit';
+import { getClientIdentifier } from '@/lib/security/client-identifier';
 
 const addDMSchema = z.object({
   userId: z.string().min(1),
@@ -93,6 +95,15 @@ export async function POST(
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limiting
+    const identifier = getClientIdentifier(request, session.user.id);
+    if (!apiRateLimiter.check(identifier)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
     }
 
     const { campaignId } = params;
