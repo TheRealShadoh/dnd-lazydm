@@ -21,7 +21,7 @@ interface CampaignMetadata {
   };
 }
 
-async function getUserCampaigns(userId: string) {
+async function getUserCampaigns(userId: string, isAdmin: boolean = false) {
   const campaignsDir = path.join(process.cwd(), 'src', 'app', 'campaigns');
 
   try {
@@ -37,15 +37,20 @@ async function getUserCampaigns(userId: string) {
 
           // Check user's role in this campaign
           const access = campaign.access;
-          if (!access) continue;
+
+          // If no access and not admin, skip
+          if (!access && !isAdmin) continue;
 
           let role = '';
-          if (access.ownerId === userId) {
+          if (access?.ownerId === userId) {
             role = 'Owner';
-          } else if (access.dmIds.includes(userId)) {
+          } else if (access?.dmIds.includes(userId)) {
             role = 'DM';
-          } else if (access.playerAssignments.some(p => p.userId === userId)) {
+          } else if (access?.playerAssignments.some(p => p.userId === userId)) {
             role = 'Player';
+          } else if (isAdmin) {
+            // Admin can see all campaigns, mark unassigned ones
+            role = access?.ownerId ? 'Admin' : 'Unassigned (Admin)';
           }
 
           if (role) {
@@ -71,7 +76,8 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  const userCampaigns = await getUserCampaigns(session.user.id);
+  const isAdmin = (session.user as any).isAdmin || false;
+  const userCampaigns = await getUserCampaigns(session.user.id, isAdmin);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -139,7 +145,9 @@ export default async function DashboardPage() {
                     </h3>
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded ${
-                        role === 'Owner' || role === 'DM'
+                        role.includes('Unassigned')
+                          ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                          : role === 'Owner' || role === 'DM'
                           ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                           : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                       }`}
