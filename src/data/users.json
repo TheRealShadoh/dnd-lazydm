@@ -1,1 +1,11 @@
-{"users":[]}
+{
+  "users": [
+    {
+      "id": "user_2b0PbIRrUhN2_CSiLV1X2",
+      "email": "shadoh9113@gmail.com",
+      "passwordHash": "$2b$10$8JURGCsGabhzENA.uoYdgeQtqA9tO57BQlGFlA.VxUP3ukZhubAzO",
+      "name": "chris",
+      "createdAt": "2025-11-20T06:53:42.650Z"
+    }
+  ]
+}
