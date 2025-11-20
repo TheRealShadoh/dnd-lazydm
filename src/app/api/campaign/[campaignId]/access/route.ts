@@ -53,14 +53,15 @@ export async function GET(
     }
 
     const { campaignId } = await params;
+    const isAdmin = (session.user as any).isAdmin || false;
 
-    // Check if user is owner or DM
+    // Check if user is owner, DM, or admin
     const isOwnerCheck = await isOwner(campaignId, session.user.id);
     const isDMCheck = await isDM(campaignId, session.user.id);
 
-    if (!isOwnerCheck && !isDMCheck) {
+    if (!isOwnerCheck && !isDMCheck && !isAdmin) {
       return NextResponse.json(
-        { error: 'Only campaign owners and DMs can view access control' },
+        { error: 'Only campaign owners, DMs, and admins can view access control' },
         { status: 403 }
       );
     }
@@ -106,14 +107,15 @@ export async function POST(
     }
 
     const { campaignId } = await params;
+    const isAdmin = (session.user as any).isAdmin || false;
 
-    // Check if user is owner or DM
+    // Check if user is owner, DM, or admin
     const isOwnerCheck = await isOwner(campaignId, session.user.id);
     const isDMCheck = await isDM(campaignId, session.user.id);
 
-    if (!isOwnerCheck && !isDMCheck) {
+    if (!isOwnerCheck && !isDMCheck && !isAdmin) {
       return NextResponse.json(
-        { error: 'Only campaign owners and DMs can manage access' },
+        { error: 'Only campaign owners, DMs, and admins can manage access' },
         { status: 403 }
       );
     }
