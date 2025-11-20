@@ -9,6 +9,7 @@ export interface User {
   passwordHash: string;
   name: string;
   createdAt: string;
+  isAdmin?: boolean;
 }
 
 interface UsersData {
@@ -51,6 +52,9 @@ export async function createUser(email: string, password: string, name: string):
   // Hash password
   const passwordHash = await bcrypt.hash(password, 10);
 
+  // Check if this is the first user (make them admin)
+  const isFirstUser = data.users.length === 0;
+
   // Create user object
   const user: User = {
     id: `user_${nanoid()}`,
@@ -58,6 +62,7 @@ export async function createUser(email: string, password: string, name: string):
     passwordHash,
     name,
     createdAt: new Date().toISOString(),
+    isAdmin: isFirstUser, // First user is automatically admin
   };
 
   // Add to users array
