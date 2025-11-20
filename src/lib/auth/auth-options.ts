@@ -1,8 +1,8 @@
-import type { NextAuthOptions } from 'next-auth';
+import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { findUserByEmail, verifyPassword } from './user-storage';
 
-export const authOptions: NextAuthOptions = {
+export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -15,13 +15,16 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email and password required');
         }
 
-        const user = await findUserByEmail(credentials.email);
+        const email = credentials.email as string;
+        const password = credentials.password as string;
+
+        const user = await findUserByEmail(email);
 
         if (!user) {
           throw new Error('Invalid email or password');
         }
 
-        const isValid = await verifyPassword(user, credentials.password);
+        const isValid = await verifyPassword(user, password);
 
         if (!isValid) {
           throw new Error('Invalid email or password');
@@ -56,4 +59,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-};
+});
+
+// For backwards compatibility with getServerSession
+export const authOptions = undefined; // No longer needed in NextAuth v5

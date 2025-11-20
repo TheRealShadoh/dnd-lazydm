@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/auth-options';
+import { auth } from '@/lib/auth/auth-options';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import fs from 'fs/promises';
@@ -66,7 +65,7 @@ async function getUserCampaigns(userId: string) {
 }
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   if (!session) {
     redirect('/login');

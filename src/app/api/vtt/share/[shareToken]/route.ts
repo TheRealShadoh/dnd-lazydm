@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/auth-options';
+import { auth } from '@/lib/auth/auth-options';
 import { findShareByToken } from '@/lib/vtt/share-storage';
 import { hasAccess } from '@/lib/campaign/access-control';
 
@@ -10,16 +9,16 @@ import { hasAccess } from '@/lib/campaign/access-control';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { shareToken: string } }
+  { params }: { params: Promise<{ shareToken: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { shareToken } = params;
+    const { shareToken } = await params;
 
     // Find the share
     const share = await findShareByToken(shareToken);

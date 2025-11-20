@@ -73,16 +73,18 @@ function PlayerVTTContent() {
         }
 
         // Fetch user's assigned tokens
-        try {
-          const accessResponse = await fetch(
-            `/api/campaign/${data.campaignId}/access/tokens?userId=${session.user.id}`
-          );
-          if (accessResponse.ok) {
-            const accessData = await accessResponse.json();
-            setUserTokenIds(accessData.tokenIds || []);
+        if (session) {
+          try {
+            const accessResponse = await fetch(
+              `/api/campaign/${data.campaignId}/access/tokens?userId=${session.user.id}`
+            );
+            if (accessResponse.ok) {
+              const accessData = await accessResponse.json();
+              setUserTokenIds(accessData.tokenIds || []);
+            }
+          } catch (err) {
+            console.error('Error fetching user token assignments:', err);
           }
-        } catch (err) {
-          console.error('Error fetching user token assignments:', err);
         }
       } catch (err) {
         console.error('Error fetching share details:', err);

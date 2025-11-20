@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/auth-options';
+import { auth } from '@/lib/auth/auth-options';
 import { z } from 'zod';
 import {
   getCampaignAccess,
@@ -44,16 +43,16 @@ const unassignTokenSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { campaignId: string } }
+  { params }: { params: Promise<{ campaignId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { campaignId } = params;
+    const { campaignId } = await params;
 
     // Check if user is owner or DM
     const isOwnerCheck = await isOwner(campaignId, session.user.id);
@@ -88,10 +87,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { campaignId: string } }
+  { params }: { params: Promise<{ campaignId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -106,7 +105,7 @@ export async function POST(
       );
     }
 
-    const { campaignId } = params;
+    const { campaignId } = await params;
 
     // Check if user is owner or DM
     const isOwnerCheck = await isOwner(campaignId, session.user.id);

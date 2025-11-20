@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/auth-options';
+import { auth } from '@/lib/auth/auth-options';
 import { getPlayerTokens } from '@/lib/campaign/access-control';
 
 /**
@@ -9,16 +8,16 @@ import { getPlayerTokens } from '@/lib/campaign/access-control';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { campaignId: string } }
+  { params }: { params: Promise<{ campaignId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { campaignId } = params;
+    const { campaignId } = await params;
     const searchParams = request.nextUrl.searchParams;
     const userId = searchParams.get('userId') || session.user.id;
 

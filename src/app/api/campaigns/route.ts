@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/auth-options'
+import { auth } from '@/lib/auth/auth-options'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
