@@ -7,10 +7,15 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      # NextAuth configuration (REQUIRED for authentication)
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-please-change-this-to-a-random-secret-in-production}
     volumes:
       # Mount local campaigns directories for persistence
       - ./src/app/campaigns:/app/src/app/campaigns
       - ./public/campaigns:/app/public/campaigns
+      # Mount data directory for user authentication and VTT shares
+      - ./src/data:/app/src/data
       # Optional: Mount an external campaigns data directory
       # Uncomment and modify the path below to use an external campaigns folder
       # - /path/to/your/external/campaigns:/app/data/campaigns

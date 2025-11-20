@@ -34,13 +34,14 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/src ./src
 
-# Create campaign directories
+# Create campaign and data directories
 RUN mkdir -p /app/src/app/campaigns && \
     mkdir -p /app/public/campaigns && \
-    mkdir -p /app/data/campaigns
+    mkdir -p /app/data/campaigns && \
+    mkdir -p /app/src/data
 
 # Create volume mount points
-VOLUME ["/app/src/app/campaigns", "/app/public/campaigns", "/app/data/campaigns"]
+VOLUME ["/app/src/app/campaigns", "/app/public/campaigns", "/app/data/campaigns", "/app/src/data"]
 
 # Expose port 3000
 EXPOSE 3000
