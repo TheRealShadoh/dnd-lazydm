@@ -7,6 +7,7 @@ import { useConfirm } from '@/hooks/useConfirm'
 import { useToast } from '@/hooks/useToast'
 import { ManualCharacterForm } from '@/components/characters/ManualCharacterForm'
 import { Button } from '@/components/ui/Button'
+import { CampaignAccessManager } from '@/components/admin/CampaignAccessManager'
 
 interface CampaignMetadata {
   name: string
@@ -1306,6 +1307,9 @@ export default function CampaignAdminPage() {
               </div>
             </div>
           </div>
+
+          {/* Campaign Access Section */}
+          <CampaignAccessManager campaignId={campaignId} />
         </div>
       </div>
     </div>

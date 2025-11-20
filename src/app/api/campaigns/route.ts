@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const data = await request.json()
     const { name, slug, description, synopsis, level, players, duration, genre, thumbnail, theme } = data
 
@@ -120,7 +128,7 @@ Add your monster stat blocks here.
     await fs.mkdir(monstersPath, { recursive: true })
     await fs.writeFile(path.join(monstersPath, 'page.mdx'), monstersPageContent)
 
-    // Save campaign metadata
+    // Save campaign metadata with access control
     const metadataPath = path.join(campaignPath, 'campaign.json')
     const metadata = {
       name,
@@ -133,6 +141,11 @@ Add your monster stat blocks here.
       thumbnail,
       theme,
       createdAt: new Date().toISOString(),
+      access: {
+        ownerId: session.user.id,
+        dmIds: [],
+        playerAssignments: [],
+      },
     }
 
     await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2))
