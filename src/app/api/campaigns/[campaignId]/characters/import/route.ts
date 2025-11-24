@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
+import { auth } from '@/lib/auth/auth-options'
+import { validateCampaignId } from '@/lib/utils/sanitize'
+import { strictRateLimiter } from '@/lib/security/rate-limit'
+import { getClientIdentifier } from '@/lib/security/client-identifier'
 
 interface DnDBeyondCharacter {
   characterId: string
@@ -34,8 +38,26 @@ export async function POST(
   { params }: { params: Promise<{ campaignId: string }> }
 ) {
   try {
+    // Check authentication
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Apply rate limiting
+    const identifier = getClientIdentifier(request)
+    if (!strictRateLimiter.check(identifier)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': '60' } }
+      )
+    }
+
     const { campaignId } = await params
     const { characterId, characterData, fetchedAt } = await request.json()
+
+    // Validate and sanitize campaign ID
+    const safeCampaignId = validateCampaignId(campaignId)
 
     if (!characterId || !characterData) {
       return NextResponse.json(
@@ -45,7 +67,7 @@ export async function POST(
     }
 
     // Load campaign metadata
-    const campaignPath = path.join(process.cwd(), 'src', 'app', 'campaigns', campaignId)
+    const campaignPath = path.join(process.cwd(), 'src', 'app', 'campaigns', safeCampaignId)
     const metadataPath = path.join(campaignPath, 'campaign.json')
     const metadata = await fs.readFile(metadataPath, 'utf-8')
     const campaign: CampaignMetadata = JSON.parse(metadata)

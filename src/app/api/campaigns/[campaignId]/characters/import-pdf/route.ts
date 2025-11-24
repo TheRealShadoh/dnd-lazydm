@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
 import { DndCharacterParser, CharacterSheet } from '@/lib/dnd-character-parser'
+import { auth } from '@/lib/auth/auth-options'
+import { validateCampaignId } from '@/lib/utils/sanitize'
+import { strictRateLimiter } from '@/lib/security/rate-limit'
+import { getClientIdentifier } from '@/lib/security/client-identifier'
 
 interface DnDBeyondCharacter {
   characterId: string
@@ -156,7 +160,25 @@ export async function POST(
   { params }: { params: Promise<{ campaignId: string }> }
 ) {
   try {
+    // Check authentication
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Apply rate limiting (strict for file uploads)
+    const identifier = getClientIdentifier(request)
+    if (!strictRateLimiter.check(identifier)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': '60' } }
+      )
+    }
+
     const { campaignId } = await params
+
+    // Validate and sanitize campaign ID
+    const safeCampaignId = validateCampaignId(campaignId)
 
     // Handle file upload
     const formData = await request.formData()
@@ -182,7 +204,7 @@ export async function POST(
     const characterData = convertToCampaignFormat(parsedCharacter)
 
     // Read existing campaign data
-    const campaignPath = path.join(process.cwd(), 'src', 'app', 'campaigns', campaignId)
+    const campaignPath = path.join(process.cwd(), 'src', 'app', 'campaigns', safeCampaignId)
     const campaignFile = path.join(campaignPath, 'campaign.json')
 
     let campaignData
