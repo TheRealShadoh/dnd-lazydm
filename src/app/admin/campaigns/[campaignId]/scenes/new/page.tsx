@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { MarkdownEditor } from '@/components/editor/MarkdownEditor'
+import { useToast } from '@/hooks/useToast'
 import Link from 'next/link'
 
 export default function NewScenePage() {
   const router = useRouter()
   const params = useParams()
   const campaignId = params.campaignId as string
+  const toast = useToast()
   const [loading, setLoading] = useState(false)
 
   // Form state
@@ -79,11 +81,11 @@ Write your scene content here. You can use:
       if (response.ok) {
         router.push(`/admin/campaigns/${campaignId}`)
       } else {
-        alert('Failed to create scene')
+        toast.error('Failed to create scene')
       }
     } catch (error) {
       console.error('Error creating scene:', error)
-      alert('Error creating scene')
+      toast.error('Error creating scene')
     } finally {
       setLoading(false)
     }

@@ -1,11 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth/auth-options'
+import { validateCharacterId } from '@/lib/utils/sanitize'
+import { strictRateLimiter } from '@/lib/security/rate-limit'
+import { getClientIdentifier } from '@/lib/security/client-identifier'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ characterId: string }> }
 ) {
   try {
+    // Check authentication
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Apply strict rate limiting for external API calls
+    const identifier = getClientIdentifier(request)
+    if (!strictRateLimiter.check(identifier)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': '60' } }
+      )
+    }
+
     const { characterId } = await params
+
+    // Validate and sanitize character ID
+    const safeCharacterId = validateCharacterId(characterId)
 
     if (!characterId) {
       return NextResponse.json(
@@ -30,7 +52,7 @@ export async function GET(
     }
 
     const response = await fetch(
-      `https://character-service.dndbeyond.com/character/v5/character/${characterId}`,
+      `https://character-service.dndbeyond.com/character/v5/character/${safeCharacterId}`,
       {
         headers: {
           'Accept': 'application/json',

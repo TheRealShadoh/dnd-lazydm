@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { MarkdownEditor } from '@/components/editor/MarkdownEditor'
+import { useToast } from '@/hooks/useToast'
 import Link from 'next/link'
 
 export default function EditScenePage() {
@@ -10,6 +11,7 @@ export default function EditScenePage() {
   const params = useParams()
   const campaignId = params.campaignId as string
   const sceneSlug = params.sceneSlug as string
+  const toast = useToast()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -27,11 +29,11 @@ export default function EditScenePage() {
           setTitle(data.title)
           setContent(data.content)
         } else {
-          alert('Failed to load scene')
+          toast.error('Failed to load scene')
         }
       } catch (error) {
         console.error('Error loading scene:', error)
-        alert('Error loading scene')
+        toast.error('Error loading scene')
       } finally {
         setLoading(false)
       }
@@ -57,11 +59,11 @@ export default function EditScenePage() {
       if (response.ok) {
         router.push(`/admin/campaigns/${campaignId}`)
       } else {
-        alert('Failed to update scene')
+        toast.error('Failed to update scene')
       }
     } catch (error) {
       console.error('Error updating scene:', error)
-      alert('Error updating scene')
+      toast.error('Error updating scene')
     } finally {
       setSaving(false)
     }
