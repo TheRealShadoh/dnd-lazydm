@@ -1,0 +1,978 @@
+[
+  {
+    "id": "open5e_axespear",
+    "name": "Axespear",
+    "source": "official",
+    "type": "weapon",
+    "weight": 8,
+    "description": "",
+    "properties": [
+      "double-headed (1d4)",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_barge-pole",
+    "name": "Barge Pole",
+    "source": "official",
+    "type": "weapon",
+    "weight": 5,
+    "description": "",
+    "properties": [
+      "reach",
+      "special",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_battleaxe",
+    "name": "Battleaxe",
+    "source": "official",
+    "type": "weapon",
+    "weight": 4,
+    "description": "",
+    "properties": [
+      "versatile (1d10)"
+    ]
+  },
+  {
+    "id": "open5e_bladed-scarf",
+    "name": "Bladed Scarf",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "finesse",
+      "reach",
+      "special"
+    ]
+  },
+  {
+    "id": "open5e_blowgun",
+    "name": "Blowgun",
+    "source": "official",
+    "type": "weapon",
+    "weight": 1,
+    "description": "",
+    "properties": [
+      "ammunition (range 25/100)",
+      "loading"
+    ]
+  },
+  {
+    "id": "open5e_blunderbuss",
+    "name": "Blunderbuss",
+    "source": "official",
+    "type": "weapon",
+    "weight": 12,
+    "description": "",
+    "properties": [
+      "ammunition",
+      "gunpowder",
+      "loading",
+      "special",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_bolas",
+    "name": "Bolas",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "special",
+      "thrown (range 5/15)"
+    ]
+  },
+  {
+    "id": "open5e_chain-hook",
+    "name": "Chain Hook",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "reach",
+      "special",
+      "thrown (range 10/20)"
+    ]
+  },
+  {
+    "id": "open5e_chakram",
+    "name": "Chakram",
+    "source": "official",
+    "type": "weapon",
+    "weight": 1,
+    "description": "",
+    "properties": [
+      "thrown (range 20/60)"
+    ]
+  },
+  {
+    "id": "open5e_climbing-adze",
+    "name": "Climbing Adze",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "light"
+    ]
+  },
+  {
+    "id": "open5e_clockwork-crossbow",
+    "name": "Clockwork Crossbow",
+    "source": "official",
+    "type": "weapon",
+    "weight": 8,
+    "description": "",
+    "properties": [
+      "ammunition (60/240)",
+      "magazine (6)",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_club",
+    "name": "Club",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "light"
+    ]
+  },
+  {
+    "id": "open5e_club-shield",
+    "name": "Club Shield",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "light",
+      "special"
+    ]
+  },
+  {
+    "id": "open5e_crossbow-hand",
+    "name": "Crossbow, hand",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "ammunition (range 30/120)",
+      "light",
+      "loading"
+    ]
+  },
+  {
+    "id": "open5e_crossbow-heavy",
+    "name": "Crossbow, heavy",
+    "source": "official",
+    "type": "weapon",
+    "weight": 18,
+    "description": "",
+    "properties": [
+      "ammunition (range 100/400)",
+      "heavy",
+      "loading",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_crossbow-light",
+    "name": "Crossbow, light",
+    "source": "official",
+    "type": "weapon",
+    "weight": 5,
+    "description": "",
+    "properties": [
+      "ammunition (range 80/320)",
+      "loading",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_dagger",
+    "name": "Dagger",
+    "source": "official",
+    "type": "weapon",
+    "weight": 1,
+    "description": "",
+    "properties": [
+      "finesse",
+      "light",
+      "thrown (range 20/60)"
+    ]
+  },
+  {
+    "id": "open5e_dart",
+    "name": "Dart",
+    "source": "official",
+    "type": "weapon",
+    "weight": 1,
+    "description": "",
+    "properties": [
+      "finesse",
+      "thrown (range 20/60)"
+    ]
+  },
+  {
+    "id": "open5e_double-axe",
+    "name": "Double Axe",
+    "source": "official",
+    "type": "weapon",
+    "weight": 10,
+    "description": "",
+    "properties": [
+      "double-headed (1d6)",
+      "heavy",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_dwarven-arquebus",
+    "name": "Dwarven Arquebus",
+    "source": "official",
+    "type": "weapon",
+    "weight": 20,
+    "description": "",
+    "properties": [
+      "ammunition (range 25/100)",
+      "gunpowder",
+      "heavy",
+      "loading",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_dwarven-axe",
+    "name": "Dwarven Axe",
+    "source": "official",
+    "type": "weapon",
+    "weight": 6,
+    "description": "",
+    "properties": [
+      "special",
+      "versatile (1d10)"
+    ]
+  },
+  {
+    "id": "open5e_dwarven-revolving-musket",
+    "name": "Dwarven Revolving Musket",
+    "source": "official",
+    "type": "weapon",
+    "weight": 12,
+    "description": "",
+    "properties": [
+      "ammunition (range 80/320)",
+      "gunpowder",
+      "magazine (8)",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_elven-dueling-blade",
+    "name": "Elven Dueling Blade",
+    "source": "official",
+    "type": "weapon",
+    "weight": 4,
+    "description": "",
+    "properties": [
+      "finesse",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_flail",
+    "name": "Flail",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": []
+  },
+  {
+    "id": "open5e_glaive",
+    "name": "Glaive",
+    "source": "official",
+    "type": "weapon",
+    "weight": 6,
+    "description": "",
+    "properties": [
+      "heavy",
+      "reach",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_granite-fist",
+    "name": "Granite Fist",
+    "source": "official",
+    "type": "weapon",
+    "weight": 5,
+    "description": "",
+    "properties": [
+      ""
+    ]
+  },
+  {
+    "id": "open5e_greataxe",
+    "name": "Greataxe",
+    "source": "official",
+    "type": "weapon",
+    "weight": 7,
+    "description": "",
+    "properties": [
+      "heavy",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_greatclub",
+    "name": "Greatclub",
+    "source": "official",
+    "type": "weapon",
+    "weight": 10,
+    "description": "",
+    "properties": [
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_greatsword",
+    "name": "Greatsword",
+    "source": "official",
+    "type": "weapon",
+    "weight": 6,
+    "description": "",
+    "properties": [
+      "heavy",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_halberd",
+    "name": "Halberd",
+    "source": "official",
+    "type": "weapon",
+    "weight": 6,
+    "description": "",
+    "properties": [
+      "heavy",
+      "reach",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_hand-trebuchet",
+    "name": "Hand Trebuchet",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "ammunition (range 60/240)",
+      "special"
+    ]
+  },
+  {
+    "id": "open5e_handaxe",
+    "name": "Handaxe",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "light",
+      "thrown (range 20/60)"
+    ]
+  },
+  {
+    "id": "open5e_javelin",
+    "name": "Javelin",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "thrown (range 30/120)"
+    ]
+  },
+  {
+    "id": "open5e_joining-dirks",
+    "name": "Joining Dirks",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "finesse",
+      "light",
+      "special"
+    ]
+  },
+  {
+    "id": "open5e_khopesh",
+    "name": "Khopesh",
+    "source": "official",
+    "type": "weapon",
+    "weight": 4,
+    "description": "",
+    "properties": [
+      "versatile (1d8)"
+    ]
+  },
+  {
+    "id": "open5e_lance",
+    "name": "Lance",
+    "source": "official",
+    "type": "weapon",
+    "weight": 6,
+    "description": "",
+    "properties": [
+      "reach",
+      "special"
+    ]
+  },
+  {
+    "id": "open5e_light-hammer",
+    "name": "Light hammer",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "light",
+      "thrown (range 20/60)"
+    ]
+  },
+  {
+    "id": "open5e_light-pick",
+    "name": "Light Pick",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "light",
+      "thrown (20/60)",
+      ""
+    ]
+  },
+  {
+    "id": "open5e_longbow",
+    "name": "Longbow",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "ammunition (range 150/600)",
+      "heavy",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_longsword",
+    "name": "Longsword",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "versatile (1d10)"
+    ]
+  },
+  {
+    "id": "open5e_mace",
+    "name": "Mace",
+    "source": "official",
+    "type": "weapon",
+    "weight": 4,
+    "description": "",
+    "properties": []
+  },
+  {
+    "id": "open5e_maul",
+    "name": "Maul",
+    "source": "official",
+    "type": "weapon",
+    "weight": 10,
+    "description": "",
+    "properties": [
+      "heavy",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_morningstar",
+    "name": "Morningstar",
+    "source": "official",
+    "type": "weapon",
+    "weight": 4,
+    "description": "",
+    "properties": null
+  },
+  {
+    "id": "open5e_musket",
+    "name": "Musket",
+    "source": "official",
+    "type": "weapon",
+    "weight": 10,
+    "description": "",
+    "properties": [
+      "ammunition (range 80/320)",
+      "gunpowder",
+      "loading",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_net",
+    "name": "Net",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "special",
+      "thrown (range 5/15)"
+    ]
+  },
+  {
+    "id": "open5e_pike",
+    "name": "Pike",
+    "source": "official",
+    "type": "weapon",
+    "weight": 18,
+    "description": "",
+    "properties": [
+      "heavy",
+      "reach",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_pistol",
+    "name": "Pistol",
+    "source": "official",
+    "type": "weapon",
+    "weight": 5,
+    "description": "",
+    "properties": [
+      "ammunition (range 30/120)",
+      "gunpowder",
+      "light",
+      "loading"
+    ]
+  },
+  {
+    "id": "open5e_pneumatic-war-pick",
+    "name": "Pneumatic War Pick",
+    "source": "official",
+    "type": "weapon",
+    "weight": 4,
+    "description": "",
+    "properties": [
+      "special"
+    ]
+  },
+  {
+    "id": "open5e_quarterstaff",
+    "name": "Quarterstaff",
+    "source": "official",
+    "type": "weapon",
+    "weight": 4,
+    "description": "",
+    "properties": [
+      "versatile (1d8)"
+    ]
+  },
+  {
+    "id": "open5e_rapier",
+    "name": "Rapier",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "finesse"
+    ]
+  },
+  {
+    "id": "open5e_scimitar",
+    "name": "Scimitar",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "finesse",
+      "light"
+    ]
+  },
+  {
+    "id": "open5e_shashka",
+    "name": "Shashka",
+    "source": "official",
+    "type": "weapon",
+    "weight": 4,
+    "description": "",
+    "properties": [
+      "special",
+      "versatile (1d10)"
+    ]
+  },
+  {
+    "id": "open5e_shortbow",
+    "name": "Shortbow",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "ammunition (range 80/320)",
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_shortsword",
+    "name": "Shortsword",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "finesse",
+      "light"
+    ]
+  },
+  {
+    "id": "open5e_shotel",
+    "name": "Shotel",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "finesse",
+      "special"
+    ]
+  },
+  {
+    "id": "open5e_sickle",
+    "name": "Sickle",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "light"
+    ]
+  },
+  {
+    "id": "open5e_sling",
+    "name": "Sling",
+    "source": "official",
+    "type": "weapon",
+    "weight": 0,
+    "description": "",
+    "properties": [
+      "ammunition (range 30/120)"
+    ]
+  },
+  {
+    "id": "open5e_spear",
+    "name": "Spear",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "thrown (range 20/60)",
+      "versatile (1d8)"
+    ]
+  },
+  {
+    "id": "open5e_stone-rake",
+    "name": "Stone Rake",
+    "source": "official",
+    "type": "weapon",
+    "weight": 5,
+    "description": "",
+    "properties": [
+      "two-handed"
+    ]
+  },
+  {
+    "id": "open5e_temple-sword",
+    "name": "Temple Sword",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "finesse",
+      "light"
+    ]
+  },
+  {
+    "id": "open5e_trident",
+    "name": "Trident",
+    "source": "official",
+    "type": "weapon",
+    "weight": 4,
+    "description": "",
+    "properties": [
+      "thrown (range 20/60)",
+      "versatile (1d8)"
+    ]
+  },
+  {
+    "id": "open5e_war-pick",
+    "name": "War pick",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": []
+  },
+  {
+    "id": "open5e_warhammer",
+    "name": "Warhammer",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "versatile (1d10)"
+    ]
+  },
+  {
+    "id": "open5e_whip",
+    "name": "Whip",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "finesse",
+      "reach"
+    ]
+  },
+  {
+    "id": "open5e_whipsaw",
+    "name": "Whipsaw",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "finesse"
+    ]
+  },
+  {
+    "id": "open5e_wormsilk-net",
+    "name": "Wormsilk Net",
+    "source": "official",
+    "type": "weapon",
+    "weight": 2,
+    "description": "",
+    "properties": [
+      "special",
+      "thrown (range 10/20)"
+    ]
+  },
+  {
+    "id": "open5e_wormsilk-whip",
+    "name": "Wormsilk Whip",
+    "source": "official",
+    "type": "weapon",
+    "weight": 3,
+    "description": "",
+    "properties": [
+      "finesse",
+      "reach"
+    ]
+  },
+  {
+    "id": "open5e_wrist-knife",
+    "name": "Wrist Knife",
+    "source": "official",
+    "type": "weapon",
+    "weight": 1,
+    "description": "",
+    "properties": [
+      "finesse",
+      "light"
+    ]
+  },
+  {
+    "id": "open5e_breastplate",
+    "name": "Breastplate",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_brigandine",
+    "name": "Brigandine",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_chain-mail",
+    "name": "Chain mail",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_chain-shirt",
+    "name": "Chain Shirt",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_draconic-resilience",
+    "name": "Draconic Resilience",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_half-plate",
+    "name": "Half plate",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_hide",
+    "name": "Hide",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_kite-shield",
+    "name": "Kite shield",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_leather",
+    "name": "Leather",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_mage-armor",
+    "name": "Mage Armor",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_manica",
+    "name": "Manica",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_padded",
+    "name": "Padded",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_plate",
+    "name": "Plate",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_ring-mail",
+    "name": "Ring mail",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_scale-mail",
+    "name": "Scale mail",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_shield",
+    "name": "Shield",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_silk-backed-coin-mail",
+    "name": "Silk-Backed Coin Mail",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_splint",
+    "name": "Splint",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_stonesteel",
+    "name": "Stonesteel",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_studded-leather",
+    "name": "Studded Leather",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_unarmored",
+    "name": "Unarmored",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_unarmored-defense-barbarian",
+    "name": "Unarmored Defense (Barbarian)",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  },
+  {
+    "id": "open5e_unarmored-defense-monk",
+    "name": "Unarmored Defense (Monk)",
+    "source": "official",
+    "type": "armor",
+    "description": ""
+  }
+]
