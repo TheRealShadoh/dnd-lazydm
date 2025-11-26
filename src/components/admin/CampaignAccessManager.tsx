@@ -122,6 +122,8 @@ export function CampaignAccessManager({ campaignId }: CampaignAccessManagerProps
   }
 
   const isOwner = session?.user.id === access.ownerId;
+  const isAdmin = (session?.user as any)?.isAdmin || false;
+  const canManage = isOwner || isAdmin;
 
   return (
     <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 space-y-6">
@@ -172,7 +174,7 @@ export function CampaignAccessManager({ campaignId }: CampaignAccessManagerProps
                     <p className="text-white font-medium">{user?.name || 'Unknown'}</p>
                     <p className="text-sm text-gray-400">{user?.email || dmId}</p>
                   </div>
-                  {isOwner && (
+                  {canManage && (
                     <button
                       onClick={() => handleAction('removeDM', { userId: dmId })}
                       className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition"
@@ -186,7 +188,7 @@ export function CampaignAccessManager({ campaignId }: CampaignAccessManagerProps
           </div>
         )}
 
-        {isOwner && availableUsers.length > 0 && (
+        {canManage && availableUsers.length > 0 && (
           <div className="flex gap-2">
             <select
               value={selectedUserId}
