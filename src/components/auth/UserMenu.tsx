@@ -71,15 +71,23 @@ export default function UserMenu() {
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
               onClick={() => setIsOpen(false)}
             >
-              Dashboard
+              📊 Dashboard
             </Link>
 
             <Link
-              href="/admin"
+              href="/admin/srd"
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
               onClick={() => setIsOpen(false)}
             >
-              Campaign Admin
+              📚 SRD Database
+            </Link>
+
+            <Link
+              href="/vtt"
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              🗺️ Virtual Tabletop
             </Link>
 
             <button

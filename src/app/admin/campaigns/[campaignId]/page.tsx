@@ -353,11 +353,11 @@ export default function CampaignAdminPage() {
           </div>
           <p className="text-gray-400 mb-4">Campaign not found</p>
           <Link
-            href="/admin"
+            href="/dashboard"
             className="inline-block px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg
                        font-semibold transition-colors duration-200"
           >
-            Back to Admin
+            Back to Dashboard
           </Link>
         </div>
       </div>
@@ -371,10 +371,10 @@ export default function CampaignAdminPage() {
         <div className="flex items-start justify-between mb-8">
           <div className="flex-1">
             <Link
-              href="/admin"
+              href="/dashboard"
               className="inline-block mb-4 text-gray-400 hover:text-white transition-colors"
             >
-              ← Back to Admin
+              ← Back to Dashboard
             </Link>
             <h1 className="text-4xl font-bold text-purple-400 mb-2">{campaign.name}</h1>
             {campaign.description && (

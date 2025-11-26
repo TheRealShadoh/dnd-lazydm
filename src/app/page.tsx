@@ -6,16 +6,16 @@ export default function HomePage() {
       <main className="flex-1 max-w-7xl mx-auto px-4 py-16 w-full">
         <div className="flex justify-end mb-4">
           <Link
-            href="/admin"
+            href="/dashboard"
             className="px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg font-semibold
                        transition-colors duration-200"
           >
-            Campaign Manager
+            Campaign Dashboard
           </Link>
         </div>
         <div className="text-center mb-16">
           <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-purple-primary to-purple-dark bg-clip-text text-transparent">
-            DM Campaign Manager
+            DM Campaign Dashboard
           </h1>
           <p className="text-xl text-gray-400">
             Select a campaign below to begin your adventure
