@@ -5,6 +5,7 @@
       "email": "shadoh9113@gmail.com",
       "passwordHash": "$2b$10$8JURGCsGabhzENA.uoYdgeQtqA9tO57BQlGFlA.VxUP3ukZhubAzO",
       "name": "chris",
+      "isAdmin": true,
       "createdAt": "2025-11-20T06:53:42.650Z"
     }
   ]
