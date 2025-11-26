@@ -303,7 +303,7 @@ export default function UnifiedDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
             <div className="text-3xl font-bold text-purple-400 mb-1">
-              {userCampaigns.length}
+              {campaigns.length}
             </div>
             <div className="text-sm text-gray-400">Active Campaigns</div>
           </div>
