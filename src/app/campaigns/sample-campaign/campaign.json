@@ -1,5 +1,5 @@
 {
-  "name": "sample campaign",
+  "name": "Sample Campaign",
   "slug": "sample-campaign",
   "description": "trying stuff out",
   "level": "10",
@@ -11,5 +11,10 @@
     "primary": "#47bd90",
     "secondary": "#07785c"
   },
-  "createdAt": "2025-11-17T04:31:48.028Z"
+  "createdAt": "2025-11-17T04:31:48.028Z",
+  "access": {
+    "ownerId": "",
+    "dmIds": [],
+    "playerAssignments": []
+  }
 }

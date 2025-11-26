@@ -12,6 +12,11 @@
     "secondary": "#7b1fa2"
   },
   "createdAt": "2025-01-16T00:00:00.000Z",
+  "access": {
+    "ownerId": "",
+    "dmIds": [],
+    "playerAssignments": []
+  },
   "dndbeyond": {
     "characters": []
   }
