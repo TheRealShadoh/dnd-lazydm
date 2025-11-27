@@ -13,11 +13,11 @@ function calculateModifier(score: number): string {
 }
 
 // Helper to format speed - handles both string and object formats
-function formatSpeed(speed: string | Record<string, number> | undefined): string {
+function formatSpeed(speed: string | Record<string, number | string> | undefined): string {
   if (!speed) return '30 ft.'
   if (typeof speed === 'string') return speed
 
-  // Handle object format like {walk: 30, swim: 40, fly: 60}
+  // Handle object format like {walk: 30, swim: 40, fly: 60} or {walk: "30", swim: "40"}
   const parts: string[] = []
   if ('walk' in speed) parts.push(`${speed.walk} ft.`)
   if ('swim' in speed) parts.push(`swim ${speed.swim} ft.`)
@@ -26,6 +26,20 @@ function formatSpeed(speed: string | Record<string, number> | undefined): string
   if ('climb' in speed) parts.push(`climb ${speed.climb} ft.`)
 
   return parts.length > 0 ? parts.join(', ') : '30 ft.'
+}
+
+// Helper to format senses - handles both array and object formats
+function formatSenses(senses: string[] | Record<string, string | number> | undefined): string {
+  if (!senses) return ''
+  if (Array.isArray(senses)) return senses.join(', ')
+
+  // Handle object format like { darkvision: "60 ft.", passive_perception: 12 }
+  return Object.entries(senses)
+    .map(([key, value]) => {
+      const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      return typeof value === 'number' ? `${formattedKey} ${value}` : `${formattedKey} ${value}`
+    })
+    .join(', ')
 }
 
 // Generate MDX content from monster data
@@ -247,7 +261,7 @@ export async function POST(
       undefined, // Convert skills object to string
       srdMonsterData.damageResistances?.join(', '),
       srdMonsterData.damageImmunities?.join(', '),
-      srdMonsterData.senses?.join(', '),
+      formatSenses(srdMonsterData.senses),
       srdMonsterData.languages?.join(', '),
       srdMonsterData.traits,
       srdMonsterData.actions,

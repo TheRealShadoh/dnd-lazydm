@@ -9,7 +9,7 @@ export interface SRDMonster {
   source: 'official' | 'custom';
   ac: number;
   hp: number;
-  speed: string | Record<string, number>;
+  speed: string | Record<string, number | string>;
   abilities: {
     strength: number;
     dexterity: number;
@@ -24,7 +24,7 @@ export interface SRDMonster {
   damageResistances?: string[];
   damageVulnerabilities?: string[];
   conditionImmunities?: string[];
-  senses?: string[];
+  senses?: string[] | Record<string, string | number>;
   languages?: string[];
   challengeRating: number;
   traits?: Array<{

@@ -107,11 +107,11 @@ function formatSkills(skills?: Record<string, number>): string {
 /**
  * Format speed - handles both string and object formats
  */
-function formatSpeed(speed: string | Record<string, number> | undefined): string {
+function formatSpeed(speed: string | Record<string, number | string> | undefined): string {
   if (!speed) return ''
   if (typeof speed === 'string') return speed
 
-  // Handle object format like {walk: 30, swim: 40, fly: 60}
+  // Handle object format like {walk: 30, swim: 40, fly: 60} or {walk: "30", swim: "40"}
   const parts: string[] = []
   if ('walk' in speed) parts.push(`${speed.walk} ft.`)
   if ('swim' in speed) parts.push(`swim ${speed.swim} ft.`)
@@ -120,6 +120,22 @@ function formatSpeed(speed: string | Record<string, number> | undefined): string
   if ('climb' in speed) parts.push(`climb ${speed.climb} ft.`)
 
   return parts.length > 0 ? parts.join(', ') : ''
+}
+
+/**
+ * Format senses - handles both array and object formats
+ */
+function formatSenses(senses: string[] | Record<string, string | number> | undefined): string {
+  if (!senses) return ''
+  if (Array.isArray(senses)) return senses.join(', ')
+
+  // Handle object format like { darkvision: "60 ft.", passive_perception: 12 }
+  return Object.entries(senses)
+    .map(([key, value]) => {
+      const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      return typeof value === 'number' ? `${formattedKey} ${value}` : `${formattedKey} ${value}`
+    })
+    .join(', ')
 }
 
 /**
@@ -147,7 +163,7 @@ export function srdMonsterToFormData(monster: SRDMonster): MonsterFormData {
     skills: formatSkills(monster.skills),
     resistances: monster.damageResistances?.join(', ') || '',
     immunities: monster.damageImmunities?.join(', ') || '',
-    senses: monster.senses?.join(', ') || '',
+    senses: formatSenses(monster.senses),
     languages: monster.languages?.join(', ') || '',
     traits: monster.traits || [],
     actions: monster.actions || [],

@@ -27,6 +27,21 @@ interface Trait {
   description: string
 }
 
+/**
+ * Normalize senses from AI response - handles both array and object formats
+ */
+function normalizeSenses(senses: string[] | Record<string, string | number> | undefined): string {
+  if (!senses) return 'Passive Perception 10'
+  if (Array.isArray(senses)) return senses.join(', ')
+  // Handle object format: { darkvision: "60 ft.", passive_perception: 12 }
+  return Object.entries(senses)
+    .map(([key, value]) => {
+      const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      return typeof value === 'number' ? `${formattedKey} ${value}` : `${formattedKey} ${value}`
+    })
+    .join(', ')
+}
+
 export default function NewMonsterPage() {
   const router = useRouter()
   const params = useParams()
@@ -172,7 +187,7 @@ export default function NewMonsterPage() {
     setSkills(monster.skills?.join(', ') || '')
     setResistances(monster.damageResistances?.join(', ') || '')
     setImmunities(monster.damageImmunities?.join(', ') || '')
-    setSenses(monster.senses?.join(', ') || 'Passive Perception 10')
+    setSenses(normalizeSenses(monster.senses))
     setLanguages(monster.languages?.join(', ') || '')
     setTraits(monster.traits || [])
     setActions(monster.actions || [])

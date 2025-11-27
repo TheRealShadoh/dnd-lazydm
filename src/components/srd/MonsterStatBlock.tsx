@@ -6,11 +6,11 @@ import { Swords, Shield, Heart, Zap, Eye, MessageSquare } from 'lucide-react'
 import type { SRDMonster } from '@/lib/srd/models'
 
 // Helper to format speed - handles both string and object formats
-function formatSpeed(speed: string | Record<string, number> | undefined): string {
+function formatSpeed(speed: string | Record<string, number | string> | undefined): string {
   if (!speed) return '—'
   if (typeof speed === 'string') return speed
 
-  // Handle object format like {walk: 30, swim: 40, fly: 60}
+  // Handle object format like {walk: 30, swim: 40, fly: 60} or {walk: "30", swim: "40"}
   const parts: string[] = []
   if ('walk' in speed) parts.push(`${speed.walk} ft.`)
   if ('swim' in speed) parts.push(`swim ${speed.swim} ft.`)
@@ -20,6 +20,20 @@ function formatSpeed(speed: string | Record<string, number> | undefined): string
   if ('hover' in speed) parts.push(`hover ${speed.hover} ft.`)
 
   return parts.length > 0 ? parts.join(', ') : '—'
+}
+
+// Helper to format senses - handles both array and object formats
+function formatSenses(senses: string[] | Record<string, string | number> | undefined): string {
+  if (!senses) return ''
+  if (Array.isArray(senses)) return senses.join(', ')
+
+  // Handle object format like { darkvision: "60 ft.", passive_perception: 12 }
+  return Object.entries(senses)
+    .map(([key, value]) => {
+      const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      return typeof value === 'number' ? `${formattedKey} ${value}` : `${formattedKey} ${value}`
+    })
+    .join(', ')
 }
 
 interface MonsterStatBlockProps {
@@ -129,9 +143,9 @@ export function MonsterStatBlock({
         )}
 
         {/* Senses & Languages */}
-        {monster.senses && monster.senses.length > 0 && (
+        {monster.senses && (Array.isArray(monster.senses) ? monster.senses.length > 0 : Object.keys(monster.senses).length > 0) && (
           <PropertySection title="Senses" icon={<Eye className="h-4 w-4" />}>
-            <span className="text-sm text-foreground">{monster.senses.join(', ')}</span>
+            <span className="text-sm text-foreground">{formatSenses(monster.senses)}</span>
           </PropertySection>
         )}
 
