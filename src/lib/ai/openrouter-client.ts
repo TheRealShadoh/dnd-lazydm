@@ -61,6 +61,9 @@ export function createOpenRouterClient(apiKey: string, defaultModel?: string): O
     temperature?: number;
     modelOverride?: string;
   } = {}): Promise<string> {
+    const requestModel = options.modelOverride || model;
+    console.log('OpenRouter request to model:', requestModel);
+
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -70,7 +73,7 @@ export function createOpenRouterClient(apiKey: string, defaultModel?: string): O
         'X-Title': 'LazyDM',
       },
       body: JSON.stringify({
-        model: options.modelOverride || model,
+        model: requestModel,
         messages,
         max_tokens: options.maxTokens || 4096,
         temperature: options.temperature ?? 0.7,
@@ -79,8 +82,9 @@ export function createOpenRouterClient(apiKey: string, defaultModel?: string): O
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.error?.message || response.statusText;
-      throw new Error(`OpenRouter API error: ${errorMessage}`);
+      const errorMessage = errorData.error?.message || errorData.message || response.statusText;
+      console.error('OpenRouter API error:', response.status, errorData);
+      throw new Error(`OpenRouter API error (${response.status}): ${errorMessage}`);
     }
 
     const data = await response.json();
@@ -152,11 +156,14 @@ IMPORTANT: You must respond with valid JSON only. Do not include any markdown fo
 
     async testConnection(): Promise<{ success: boolean; message: string }> {
       try {
+        console.log('Testing OpenRouter connection with model:', model);
         const messages = [
           { role: 'user', content: 'Say "Hello from OpenRouter!" in exactly those words.' },
         ];
 
         const response = await makeRequest(messages, { maxTokens: 50 });
+
+        console.log('OpenRouter test response:', response?.slice(0, 100));
 
         if (response) {
           return {
@@ -170,12 +177,13 @@ IMPORTANT: You must respond with valid JSON only. Do not include any markdown fo
           message: 'Unexpected response format',
         };
       } catch (error) {
+        console.error('OpenRouter test connection error:', error);
         const message = error instanceof Error ? error.message : 'Unknown error';
 
-        if (message.includes('401') || message.includes('invalid') || message.includes('unauthorized')) {
+        if (message.includes('401') || message.includes('invalid') || message.includes('unauthorized') || message.includes('Unauthorized')) {
           return {
             success: false,
-            message: 'Invalid API key',
+            message: 'Invalid API key - check your OpenRouter key',
           };
         }
         if (message.includes('429')) {
@@ -184,10 +192,16 @@ IMPORTANT: You must respond with valid JSON only. Do not include any markdown fo
             message: 'Rate limited - please try again later',
           };
         }
-        if (message.includes('insufficient')) {
+        if (message.includes('insufficient') || message.includes('credits') || message.includes('balance')) {
           return {
             success: false,
-            message: 'Insufficient credits',
+            message: 'Insufficient credits - add credits at openrouter.ai',
+          };
+        }
+        if (message.includes('model') || message.includes('not found') || message.includes('404')) {
+          return {
+            success: false,
+            message: `Model "${model}" not available - try a different model`,
           };
         }
 

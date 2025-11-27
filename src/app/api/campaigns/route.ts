@@ -159,6 +159,67 @@ Add your monster stat blocks here.
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth()
+
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const campaignSlug = searchParams.get('slug')
+    const confirmation = searchParams.get('confirmation')
+
+    if (!campaignSlug) {
+      return NextResponse.json({ error: 'Campaign slug is required' }, { status: 400 })
+    }
+
+    // Require typing "DELETE" as confirmation
+    if (confirmation !== 'DELETE') {
+      return NextResponse.json({ error: 'Confirmation required. Please type DELETE to confirm.' }, { status: 400 })
+    }
+
+    const userId = session.user.id || ''
+    const isAdmin = (session.user as { isAdmin?: boolean })?.isAdmin || false
+
+    // Check campaign exists and user has permission
+    const campaignPath = path.join(process.cwd(), 'src', 'app', 'campaigns', campaignSlug)
+    const metadataPath = path.join(campaignPath, 'campaign.json')
+
+    try {
+      const metadata = await fs.readFile(metadataPath, 'utf-8')
+      const campaign = JSON.parse(metadata)
+
+      // Only owner or admin can delete
+      if (!isAdmin && campaign.access?.ownerId !== userId) {
+        return NextResponse.json({ error: 'Only the campaign owner or admin can delete this campaign' }, { status: 403 })
+      }
+    } catch {
+      return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+    }
+
+    // Delete campaign directory recursively
+    await fs.rm(campaignPath, { recursive: true, force: true })
+
+    // Also delete public assets if they exist
+    const publicPath = path.join(process.cwd(), 'public', 'campaigns', campaignSlug)
+    try {
+      await fs.rm(publicPath, { recursive: true, force: true })
+    } catch {
+      // Public folder may not exist, that's ok
+    }
+
+    return NextResponse.json({ success: true, message: 'Campaign deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting campaign:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete campaign', details: (error as Error).message },
+      { status: 500 }
+    )
+  }
+}
+
 export async function GET() {
   try {
     // Get the current session for access control

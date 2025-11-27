@@ -25,6 +25,24 @@ export const TraitSchema = z.object({
 });
 
 /**
+ * Speed schema - handles various AI output formats
+ * Can be: "30 ft." or { walk: 30 } or { walk: "30 ft." }
+ */
+export const SpeedSchema = z.union([
+  z.string(),
+  z.record(z.string(), z.union([z.number(), z.string()])),
+]);
+
+/**
+ * Senses schema - handles array or object format
+ * Can be: ["darkvision 60 ft."] or { darkvision: "60 ft." }
+ */
+export const SensesSchema = z.union([
+  z.array(z.string()),
+  z.record(z.string(), z.union([z.string(), z.number()])),
+]).optional();
+
+/**
  * Generated Monster schema
  */
 export const GeneratedMonsterSchema = z.object({
@@ -36,10 +54,7 @@ export const GeneratedMonsterSchema = z.object({
   armorType: z.string().optional(),
   hitPoints: z.number().min(1),
   hitDice: z.string().min(1),
-  speed: z.union([
-    z.string(),
-    z.record(z.string(), z.number()),
-  ]),
+  speed: SpeedSchema,
   abilities: AbilitiesSchema,
   savingThrows: z.array(z.string()).optional(),
   skills: z.array(z.string()).optional(),
@@ -47,7 +62,7 @@ export const GeneratedMonsterSchema = z.object({
   damageResistances: z.array(z.string()).optional(),
   damageImmunities: z.array(z.string()).optional(),
   conditionImmunities: z.array(z.string()).optional(),
-  senses: z.array(z.string()).optional(),
+  senses: SensesSchema,
   languages: z.array(z.string()).optional(),
   challengeRating: z.number().min(0).max(30),
   xp: z.number().min(0).optional(),
@@ -133,8 +148,8 @@ export const GeneratedSceneSchema = z.object({
   treasures: z.array(z.string()).optional(),
   secrets: z.array(z.string()).optional(),
   transitions: z.object({
-    next: z.array(z.string()).optional(),
-    previous: z.string().optional(),
+    next: z.union([z.array(z.string()), z.string()]).optional(),
+    previous: z.union([z.array(z.string()), z.string()]).optional(),
   }).optional(),
   imagePrompt: z.string().optional(),
 });

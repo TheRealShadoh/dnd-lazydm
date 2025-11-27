@@ -57,8 +57,8 @@ export function isValidClaudeApiKey(key: string): boolean {
  * Validate OpenRouter API key format
  */
 export function isValidOpenRouterApiKey(key: string): boolean {
-  // OpenRouter API keys start with 'sk-or-' and are fairly long
-  return key.startsWith('sk-or-') && key.length > 20;
+  // OpenRouter API keys can start with 'sk-or-' or 'sk-or-v1-' and are fairly long
+  return (key.startsWith('sk-or-') || key.startsWith('sk-or-v1-')) && key.length > 20;
 }
 
 /**

@@ -9,15 +9,14 @@ import {
   Loader2,
   Plus,
   Map,
-  BookOpen,
   Users,
   Swords,
   ScrollText,
   RefreshCw,
-  Home,
   Crown,
   Shield,
-  User
+  User,
+  Sparkles
 } from 'lucide-react'
 import { MainNav } from '@/components/layout/MainNav'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -75,19 +74,6 @@ interface CampaignStats {
   characterCount: number
 }
 
-interface SRDStatus {
-  lastSyncDate?: string
-  ageHours?: number
-  needsSync: boolean
-  counts?: {
-    monsters: number
-    races: number
-    classes: number
-    spells: number
-    items: number
-    backgrounds: number
-  }
-}
 
 function getRoleIcon(role: string) {
   if (role === 'Owner') return <Crown className="h-3 w-3" />
@@ -107,7 +93,6 @@ export default function UnifiedDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'all'>('overview')
-  const [srdStatus, setSrdStatus] = useState<SRDStatus | null>(null)
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -199,17 +184,6 @@ export default function UnifiedDashboard() {
         }
 
         setCampaigns(campaignStats)
-
-        // Load SRD status
-        try {
-          const srdRes = await fetch('/api/srd/sync')
-          if (srdRes.ok) {
-            const srdData = await srdRes.json()
-            setSrdStatus(srdData)
-          }
-        } catch (err) {
-          console.error('Error loading SRD status:', err)
-        }
       } catch (err) {
         console.error('Error loading dashboard:', err)
         setError(err instanceof Error ? err.message : 'Unknown error')
@@ -268,14 +242,6 @@ export default function UnifiedDashboard() {
         <PageHeader
           title={`Welcome, ${session?.user?.name}!`}
           description="Manage your campaigns, characters, and adventures"
-          actions={
-            <Link href="/">
-              <Button variant="outline" size="sm">
-                <Home className="h-4 w-4 mr-2" />
-                Home
-              </Button>
-            </Link>
-          }
         />
 
         {/* Tab Navigation */}
@@ -303,39 +269,6 @@ export default function UnifiedDashboard() {
             All Campaigns {isAdmin && '(Admin)'}
           </button>
         </div>
-
-        {/* SRD Status Banner */}
-        {srdStatus && (
-          <Card className="mb-6">
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <BookOpen className="h-5 w-5 text-primary" />
-                  <div>
-                    <h3 className="text-sm font-semibold font-display text-foreground">SRD Reference Database</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {srdStatus.counts ? (
-                        <>
-                          {srdStatus.counts.monsters} monsters, {srdStatus.counts.spells} spells, {srdStatus.counts.items} items
-                          {srdStatus.lastSyncDate && (
-                            <> &bull; Last synced {srdStatus.ageHours}h ago</>
-                          )}
-                        </>
-                      ) : (
-                        'Not initialized'
-                      )}
-                    </p>
-                  </div>
-                </div>
-                <Link href="/admin/srd">
-                  <Button variant="secondary" size="sm">
-                    Manage SRD
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -409,8 +342,14 @@ export default function UnifiedDashboard() {
               New Campaign
             </Button>
           </Link>
-          <Link href="/vtt">
+          <Link href="/admin/campaigns/generate">
             <Button variant="secondary">
+              <Sparkles className="h-4 w-4 mr-2" />
+              AI Generate
+            </Button>
+          </Link>
+          <Link href="/vtt">
+            <Button variant="outline">
               <Map className="h-4 w-4 mr-2" />
               Virtual Tabletop
             </Button>
@@ -426,12 +365,20 @@ export default function UnifiedDashboard() {
                   <ScrollText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-xl font-bold font-display text-foreground mb-2">No campaigns yet</h3>
                   <p className="text-muted-foreground mb-6">Create your first campaign to get started</p>
-                  <Link href="/admin/campaigns/new">
-                    <Button variant="primary">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Campaign
-                    </Button>
-                  </Link>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <Link href="/admin/campaigns/new">
+                      <Button variant="primary">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Campaign
+                      </Button>
+                    </Link>
+                    <Link href="/admin/campaigns/generate">
+                      <Button variant="secondary">
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        AI Generate
+                      </Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { MainNav } from '@/components/layout/MainNav'
@@ -17,21 +17,15 @@ import {
   Eye,
   EyeOff,
   Sparkles,
-  Globe
 } from 'lucide-react'
 
-// OpenRouter models
-const OPENROUTER_MODELS = [
+// Fallback models if API fetch fails
+const FALLBACK_MODELS = [
+  { id: 'mistralai/mistral-7b-instruct:free', name: 'Mistral 7B (Free)', free: true },
   { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', free: false },
   { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', free: false },
-  { id: 'mistralai/mistral-7b-instruct:free', name: 'Mistral 7B (Free)', free: true },
-  { id: 'google/gemma-7b-it:free', name: 'Gemma 7B (Free)', free: true },
-  { id: 'meta-llama/llama-3-8b-instruct:free', name: 'Llama 3 8B (Free)', free: true },
-  { id: 'openchat/openchat-7b:free', name: 'OpenChat 7B (Free)', free: true },
-  { id: 'openai/gpt-4o', name: 'GPT-4o', free: false },
   { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini', free: false },
-  { id: 'google/gemini-pro', name: 'Gemini Pro', free: false },
-  { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', free: false },
+  { id: 'openai/gpt-4o', name: 'GPT-4o', free: false },
 ]
 
 interface AISettings {
@@ -44,6 +38,23 @@ interface AISettings {
   hasClaudeKey: boolean
   hasOpenRouterKey: boolean
   hasImageKey: boolean
+}
+
+interface ModelInfo {
+  id: string
+  name: string
+  free: boolean
+  contextLength?: number
+}
+
+type DetectedProvider = 'claude' | 'openrouter' | 'unknown' | null
+
+function detectProviderFromKey(key: string): DetectedProvider {
+  if (!key) return null
+  if (key.startsWith('sk-ant-')) return 'claude'
+  // OpenRouter keys can be sk-or- or sk-or-v1-
+  if (key.startsWith('sk-or-')) return 'openrouter'
+  return 'unknown'
 }
 
 export default function SettingsPage() {
@@ -67,21 +78,29 @@ export default function SettingsPage() {
     hasImageKey: false,
   })
 
-  // Form state
-  const [aiProvider, setAiProvider] = useState<'claude' | 'openrouter'>('claude')
-  const [claudeKey, setClaudeKey] = useState('')
-  const [openRouterKey, setOpenRouterKey] = useState('')
+  // Unified form state
+  const [aiApiKey, setAiApiKey] = useState('')
   const [openRouterModel, setOpenRouterModel] = useState('anthropic/claude-3.5-sonnet')
   const [imageKey, setImageKey] = useState('')
   const [imageProvider, setImageProvider] = useState<'openai' | 'stability' | 'none'>('none')
 
-  const [showClaudeKey, setShowClaudeKey] = useState(false)
-  const [showOpenRouterKey, setShowOpenRouterKey] = useState(false)
+  const [showAiKey, setShowAiKey] = useState(false)
   const [showImageKey, setShowImageKey] = useState(false)
 
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
-  const [aiTestResult, setAiTestResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [aiTestResult, setAiTestResult] = useState<{ success: boolean; message: string; provider?: string } | null>(null)
   const [imageTestResult, setImageTestResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [switchingProvider, setSwitchingProvider] = useState(false)
+
+  // Dynamic model loading
+  const [availableModels, setAvailableModels] = useState<ModelInfo[]>(FALLBACK_MODELS)
+  const [modelsLoading, setModelsLoading] = useState(true)
+
+  // Detect provider from the key being entered
+  const detectedProvider = useMemo(() => detectProviderFromKey(aiApiKey), [aiApiKey])
+
+  // Check if both providers have keys configured
+  const hasBothKeys = settings.hasClaudeKey && settings.hasOpenRouterKey
 
   // Redirect if not logged in
   useEffect(() => {
@@ -89,6 +108,28 @@ export default function SettingsPage() {
       router.push('/login')
     }
   }, [status, router])
+
+  // Fetch available models from OpenRouter
+  useEffect(() => {
+    async function fetchModels() {
+      try {
+        const res = await fetch('/api/ai/models')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.models && data.models.length > 0) {
+            setAvailableModels(data.models)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch models:', error)
+        // Keep using fallback models
+      } finally {
+        setModelsLoading(false)
+      }
+    }
+
+    fetchModels()
+  }, [])
 
   // Load settings
   useEffect(() => {
@@ -100,7 +141,6 @@ export default function SettingsPage() {
           if (data.settings?.aiConfig) {
             const config = data.settings.aiConfig
             setSettings(config)
-            setAiProvider(config.aiProvider || 'claude')
             setOpenRouterModel(config.openRouterModel || 'anthropic/claude-3.5-sonnet')
             setImageProvider(config.imageProvider || 'none')
           }
@@ -127,79 +167,79 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSaveAIProvider = async () => {
-    setSaving(true)
+  const handleSwitchProvider = async (newProvider: 'claude' | 'openrouter') => {
+    setSwitchingProvider(true)
     setMessage(null)
+    setAiTestResult(null)
 
     try {
       const res = await fetch('/api/user/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aiProvider }),
+        body: JSON.stringify({ aiProvider: newProvider }),
       })
 
       if (res.ok) {
-        setMessage({ type: 'success', text: `AI provider set to ${aiProvider === 'claude' ? 'Claude (Direct)' : 'OpenRouter'}` })
+        const providerName = newProvider === 'claude' ? 'Claude' : 'OpenRouter'
+        setMessage({ type: 'success', text: `Switched to ${providerName}!` })
         await reloadSettings()
       } else {
         const data = await res.json()
-        setMessage({ type: 'error', text: data.details?.join(', ') || data.error })
+        setMessage({ type: 'error', text: data.error || 'Failed to switch provider' })
       }
     } catch {
-      setMessage({ type: 'error', text: 'Failed to save settings' })
+      setMessage({ type: 'error', text: 'Failed to switch provider' })
     } finally {
-      setSaving(false)
+      setSwitchingProvider(false)
     }
   }
 
-  const handleSaveClaudeKey = async () => {
+  const handleSaveAIKey = async () => {
     setSaving(true)
     setMessage(null)
     setAiTestResult(null)
 
+    const provider = detectProviderFromKey(aiApiKey)
+
+    if (aiApiKey && provider === 'unknown') {
+      setMessage({ type: 'error', text: 'Invalid API key format. Claude keys start with "sk-ant-", OpenRouter keys start with "sk-or-".' })
+      setSaving(false)
+      return
+    }
+
     try {
+      // Build the update payload based on detected provider
+      const payload: Record<string, string | null> = {}
+
+      if (!aiApiKey) {
+        // Clearing the key - clear both
+        payload.claudeApiKey = null
+        payload.openRouterApiKey = null
+        payload.aiProvider = 'claude' // Reset to default
+      } else if (provider === 'claude') {
+        payload.claudeApiKey = aiApiKey
+        payload.aiProvider = 'claude'
+      } else if (provider === 'openrouter') {
+        payload.openRouterApiKey = aiApiKey
+        payload.openRouterModel = openRouterModel
+        payload.aiProvider = 'openrouter'
+      }
+
       const res = await fetch('/api/user/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ claudeApiKey: claudeKey || null }),
+        body: JSON.stringify(payload),
       })
 
       const data = await res.json()
 
       if (res.ok) {
-        setMessage({ type: 'success', text: claudeKey ? 'Claude API key saved!' : 'Claude API key removed!' })
-        setClaudeKey('')
-        await reloadSettings()
-      } else {
-        setMessage({ type: 'error', text: data.details?.join(', ') || data.error })
-      }
-    } catch {
-      setMessage({ type: 'error', text: 'Failed to save settings' })
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleSaveOpenRouterKey = async () => {
-    setSaving(true)
-    setMessage(null)
-    setAiTestResult(null)
-
-    try {
-      const res = await fetch('/api/user/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          openRouterApiKey: openRouterKey || null,
-          openRouterModel,
-        }),
-      })
-
-      const data = await res.json()
-
-      if (res.ok) {
-        setMessage({ type: 'success', text: openRouterKey ? 'OpenRouter API key saved!' : 'OpenRouter API key removed!' })
-        setOpenRouterKey('')
+        const providerName = provider === 'claude' ? 'Claude' : provider === 'openrouter' ? 'OpenRouter' : ''
+        setMessage({
+          type: 'success',
+          text: aiApiKey ? `${providerName} API key saved and set as active provider!` : 'API key removed!'
+        })
+        setAiApiKey('')
         await reloadSettings()
       } else {
         setMessage({ type: 'error', text: data.details?.join(', ') || data.error })
@@ -272,19 +312,32 @@ export default function SettingsPage() {
     setAiTestResult(null)
 
     try {
+      console.log('Testing AI connection...')
       const res = await fetch('/api/ai/test/claude', {
         method: 'POST',
       })
 
+      console.log('Test response status:', res.status)
       const data = await res.json()
+      console.log('Test response data:', data)
 
       if (res.ok && data.success) {
-        setAiTestResult({ success: true, message: data.message || 'Connection successful!' })
+        const providerName = data.provider === 'claude' ? 'Claude' : 'OpenRouter'
+        setAiTestResult({
+          success: true,
+          message: data.message || 'Connection successful!',
+          provider: providerName
+        })
       } else {
-        setAiTestResult({ success: false, message: data.error || 'Connection failed' })
+        // Show error from response
+        const errorMsg = data.error || data.message || `Connection failed (${res.status})`
+        console.error('Test failed:', errorMsg)
+        setAiTestResult({ success: false, message: errorMsg })
       }
-    } catch {
-      setAiTestResult({ success: false, message: 'Failed to test connection' })
+    } catch (error) {
+      console.error('Test connection error:', error)
+      const errorMsg = error instanceof Error ? error.message : 'Failed to test connection'
+      setAiTestResult({ success: false, message: errorMsg })
     } finally {
       setTestingAI(false)
     }
@@ -313,8 +366,12 @@ export default function SettingsPage() {
     }
   }
 
-  const hasActiveAIKey = (settings.aiProvider === 'claude' && settings.hasClaudeKey) ||
-                         (settings.aiProvider === 'openrouter' && settings.hasOpenRouterKey)
+  // Get current active provider info
+  const activeProvider = settings.aiProvider
+  const hasActiveKey = (activeProvider === 'claude' && settings.hasClaudeKey) ||
+                       (activeProvider === 'openrouter' && settings.hasOpenRouterKey)
+  const activeProviderName = activeProvider === 'claude' ? 'Claude' : 'OpenRouter'
+  const activeKeyMasked = activeProvider === 'claude' ? settings.claudeApiKey : settings.openRouterApiKey
 
   if (status === 'loading' || loading) {
     return (
@@ -351,42 +408,165 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* AI Provider Selection */}
+        {/* AI API Key - Single unified field */}
         <Card className="mb-6">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              <CardTitle>AI Provider</CardTitle>
+              <CardTitle>AI API Key</CardTitle>
             </div>
             <CardDescription>
-              Choose which AI service to use for content generation.
+              Enter your Claude or OpenRouter API key. The provider will be auto-detected.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Current status */}
+            {hasActiveKey && (
+              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm text-green-400">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span className="font-medium">Active: {activeProviderName}</span>
+                      {activeProvider === 'openrouter' && (
+                        <span className="text-muted-foreground">
+                          ({availableModels.find(m => m.id === settings.openRouterModel)?.name || settings.openRouterModel})
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Key: {activeKeyMasked}
+                    </div>
+                  </div>
+                  {/* Provider switch button when both keys are configured */}
+                  {hasBothKeys && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSwitchProvider(activeProvider === 'claude' ? 'openrouter' : 'claude')}
+                      disabled={switchingProvider}
+                    >
+                      {switchingProvider ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        `Switch to ${activeProvider === 'claude' ? 'OpenRouter' : 'Claude'}`
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* API Key input */}
             <div className="space-y-2">
-              <Label htmlFor="ai-provider">Active Provider</Label>
+              <Label htmlFor="ai-key">
+                {hasActiveKey ? 'Change API Key' : 'API Key'}
+              </Label>
               <div className="flex gap-2">
-                <select
-                  id="ai-provider"
-                  value={aiProvider}
-                  onChange={(e) => setAiProvider(e.target.value as 'claude' | 'openrouter')}
-                  className="flex h-10 flex-1 rounded-lg border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <option value="claude">Claude (Direct API)</option>
-                  <option value="openrouter">OpenRouter (Multiple Models)</option>
-                </select>
-                <Button onClick={handleSaveAIProvider} disabled={saving || aiProvider === settings.aiProvider}>
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Set Active'}
+                <div className="relative flex-1">
+                  <Input
+                    id="ai-key"
+                    type={showAiKey ? 'text' : 'password'}
+                    placeholder="sk-ant-... or sk-or-..."
+                    value={aiApiKey}
+                    onChange={(e) => setAiApiKey(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAiKey(!showAiKey)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showAiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <Button onClick={handleSaveAIKey} disabled={saving}>
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {aiProvider === 'claude'
-                  ? 'Direct connection to Anthropic Claude API. Requires Claude API key.'
-                  : 'Use OpenRouter to access Claude, GPT-4, Llama, and free models.'}
-              </p>
+
+              {/* Provider detection feedback */}
+              {aiApiKey && (
+                <div className={`text-sm flex items-center gap-2 ${
+                  detectedProvider === 'unknown' ? 'text-destructive' : 'text-muted-foreground'
+                }`}>
+                  {detectedProvider === 'claude' && (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 text-green-400" />
+                      <span>Detected: <strong>Claude</strong> (Direct Anthropic API)</span>
+                    </>
+                  )}
+                  {detectedProvider === 'openrouter' && (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 text-green-400" />
+                      <span>Detected: <strong>OpenRouter</strong></span>
+                    </>
+                  )}
+                  {detectedProvider === 'unknown' && (
+                    <>
+                      <AlertCircle className="h-4 w-4" />
+                      <span>Unknown key format. Claude keys start with &quot;sk-ant-&quot;, OpenRouter with &quot;sk-or-&quot;</span>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {!aiApiKey && (
+                <p className="text-xs text-muted-foreground">
+                  Get a Claude key from{' '}
+                  <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    console.anthropic.com
+                  </a>
+                  {' '}or an OpenRouter key from{' '}
+                  <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    openrouter.ai
+                  </a>
+                </p>
+              )}
             </div>
 
-            {hasActiveAIKey && (
+            {/* OpenRouter model selection - only shown when OpenRouter is active or being configured */}
+            {(detectedProvider === 'openrouter' || (activeProvider === 'openrouter' && hasActiveKey && !aiApiKey)) && (
+              <div className="space-y-2 pt-2 border-t border-border">
+                <Label htmlFor="openrouter-model">OpenRouter Model</Label>
+                <div className="flex gap-2">
+                  <select
+                    id="openrouter-model"
+                    value={openRouterModel}
+                    onChange={(e) => setOpenRouterModel(e.target.value)}
+                    disabled={modelsLoading}
+                    className="flex h-10 flex-1 rounded-lg border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                  >
+                    {modelsLoading ? (
+                      <option>Loading models...</option>
+                    ) : (
+                      <>
+                        <optgroup label="Free Models">
+                          {availableModels.filter(m => m.free).map(model => (
+                            <option key={model.id} value={model.id}>{model.name}</option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="Paid Models">
+                          {availableModels.filter(m => !m.free).map(model => (
+                            <option key={model.id} value={model.id}>{model.name}</option>
+                          ))}
+                        </optgroup>
+                      </>
+                    )}
+                  </select>
+                  {!aiApiKey && activeProvider === 'openrouter' && (
+                    <Button onClick={handleSaveOpenRouterModel} disabled={saving || openRouterModel === settings.openRouterModel || modelsLoading}>
+                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Free models have no usage cost. Paid models bill through OpenRouter.
+                </p>
+              </div>
+            )}
+
+            {/* Test connection */}
+            {hasActiveKey && (
               <div className="pt-2">
                 <Button
                   variant="outline"
@@ -411,163 +591,10 @@ export default function SettingsPage() {
                     ) : (
                       <AlertCircle className="h-4 w-4" />
                     )}
+                    {aiTestResult.provider && <span>[{aiTestResult.provider}]</span>}
                     {aiTestResult.message}
                   </div>
                 )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Claude Direct API Key */}
-        <Card className={`mb-6 ${aiProvider !== 'claude' ? 'opacity-60' : ''}`}>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <CardTitle>Claude API Key</CardTitle>
-              {settings.aiProvider === 'claude' && settings.hasClaudeKey && (
-                <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">Active</span>
-              )}
-            </div>
-            <CardDescription>
-              Direct connection to Anthropic.
-              Get your API key from{' '}
-              <a
-                href="https://console.anthropic.com/settings/keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                console.anthropic.com
-              </a>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {settings.hasClaudeKey && (
-              <div className="flex items-center gap-2 text-sm text-green-400">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>API key configured: {settings.claudeApiKey}</span>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="claude-key">
-                {settings.hasClaudeKey ? 'Update API Key' : 'API Key'}
-              </Label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    id="claude-key"
-                    type={showClaudeKey ? 'text' : 'password'}
-                    placeholder="sk-ant-..."
-                    value={claudeKey}
-                    onChange={(e) => setClaudeKey(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowClaudeKey(!showClaudeKey)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showClaudeKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                <Button onClick={handleSaveClaudeKey} disabled={saving}>
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Your API key is encrypted and stored securely. Leave blank and save to remove.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* OpenRouter API Key */}
-        <Card className={`mb-6 ${aiProvider !== 'openrouter' ? 'opacity-60' : ''}`}>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-primary" />
-              <CardTitle>OpenRouter API Key</CardTitle>
-              {settings.aiProvider === 'openrouter' && settings.hasOpenRouterKey && (
-                <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">Active</span>
-              )}
-            </div>
-            <CardDescription>
-              Access Claude, GPT-4, Llama, and many free models.
-              Get your API key from{' '}
-              <a
-                href="https://openrouter.ai/keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                openrouter.ai
-              </a>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {settings.hasOpenRouterKey && (
-              <div className="flex items-center gap-2 text-sm text-green-400">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>API key configured: {settings.openRouterApiKey}</span>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="openrouter-key">
-                {settings.hasOpenRouterKey ? 'Update API Key' : 'API Key'}
-              </Label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    id="openrouter-key"
-                    type={showOpenRouterKey ? 'text' : 'password'}
-                    placeholder="sk-or-..."
-                    value={openRouterKey}
-                    onChange={(e) => setOpenRouterKey(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowOpenRouterKey(!showOpenRouterKey)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showOpenRouterKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                <Button onClick={handleSaveOpenRouterKey} disabled={saving}>
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
-                </Button>
-              </div>
-            </div>
-
-            {settings.hasOpenRouterKey && (
-              <div className="space-y-2 pt-2 border-t border-border">
-                <Label htmlFor="openrouter-model">Model</Label>
-                <div className="flex gap-2">
-                  <select
-                    id="openrouter-model"
-                    value={openRouterModel}
-                    onChange={(e) => setOpenRouterModel(e.target.value)}
-                    className="flex h-10 flex-1 rounded-lg border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <optgroup label="Free Models">
-                      {OPENROUTER_MODELS.filter(m => m.free).map(model => (
-                        <option key={model.id} value={model.id}>{model.name}</option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Paid Models">
-                      {OPENROUTER_MODELS.filter(m => !m.free).map(model => (
-                        <option key={model.id} value={model.id}>{model.name}</option>
-                      ))}
-                    </optgroup>
-                  </select>
-                  <Button onClick={handleSaveOpenRouterModel} disabled={saving || openRouterModel === settings.openRouterModel}>
-                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Free models have no usage cost. Paid models bill through OpenRouter.
-                </p>
               </div>
             )}
           </CardContent>

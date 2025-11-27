@@ -126,6 +126,7 @@ IMPORTANT: You must respond with valid JSON only. Do not include any markdown fo
 
     async testConnection(): Promise<{ success: boolean; message: string }> {
       try {
+        console.log('Attempting Claude API test connection...');
         const response = await client.messages.create({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 50,
@@ -149,26 +150,50 @@ IMPORTANT: You must respond with valid JSON only. Do not include any markdown fo
           success: false,
           message: 'Unexpected response format from Claude',
         };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
+      } catch (error: unknown) {
+        console.error('Claude API test error:', error);
+
+        // Try to extract more details from the Anthropic error
+        let message = 'Unknown error';
+        let statusCode: number | undefined;
+
+        if (error instanceof Error) {
+          message = error.message;
+          // Check for Anthropic API error structure
+          const apiError = error as { status?: number; error?: { type?: string; message?: string } };
+          if (apiError.status) {
+            statusCode = apiError.status;
+          }
+          if (apiError.error?.message) {
+            message = apiError.error.message;
+          }
+        }
+
+        console.error('Parsed error:', { message, statusCode });
 
         // Handle common error cases
-        if (message.includes('401') || message.includes('invalid_api_key')) {
+        if (statusCode === 401 || message.includes('401') || message.includes('invalid_api_key') || message.includes('authentication')) {
           return {
             success: false,
-            message: 'Invalid API key',
+            message: 'Invalid API key - please check your key and try again',
           };
         }
-        if (message.includes('429')) {
+        if (statusCode === 429 || message.includes('429')) {
           return {
             success: false,
             message: 'Rate limited - please try again later',
           };
         }
-        if (message.includes('insufficient_quota')) {
+        if (message.includes('credit balance') || message.includes('insufficient_quota') || message.includes('billing') || message.includes('too low')) {
           return {
             success: false,
-            message: 'Insufficient API credits',
+            message: 'Insufficient API credits - add credits at console.anthropic.com',
+          };
+        }
+        if (message.includes('not_found') || message.includes('model')) {
+          return {
+            success: false,
+            message: 'Model not available - API key may not have access',
           };
         }
 

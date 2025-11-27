@@ -2,7 +2,7 @@
 
 import { signOut, useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { LayoutDashboard, BookOpen, Map, LogOut, Settings } from 'lucide-react'
+import { LayoutDashboard, Map, LogOut, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import {
   DropdownMenu,
@@ -66,12 +66,6 @@ export default function UserMenu() {
           <Link href="/dashboard" className="cursor-pointer">
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Dashboard
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/admin/srd" className="cursor-pointer">
-            <BookOpen className="mr-2 h-4 w-4" />
-            SRD Database
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

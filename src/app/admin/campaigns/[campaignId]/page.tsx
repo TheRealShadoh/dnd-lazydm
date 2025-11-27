@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Loader2, Plus, FileText, Swords, Image as ImageIcon, ExternalLink, Edit2, Eye, Upload, Users, X } from 'lucide-react'
+import { Loader2, Plus, FileText, Swords, Image as ImageIcon, ExternalLink, Edit2, Eye, Upload, Users, X, Trash2, AlertTriangle } from 'lucide-react'
 import { useConfirm } from '@/hooks/useConfirm'
 import { useToast } from '@/hooks/useToast'
 import { ManualCharacterForm } from '@/components/characters/ManualCharacterForm'
@@ -49,6 +49,7 @@ interface DnDBeyondCharacter {
 
 export default function CampaignAdminPage() {
   const params = useParams()
+  const router = useRouter()
   const campaignId = params.campaignId as string
   const { confirm } = useConfirm()
   const toast = useToast()
@@ -57,6 +58,11 @@ export default function CampaignAdminPage() {
   const [monsters, setMonsters] = useState<Monster[]>([])
   const [characters, setCharacters] = useState<DnDBeyondCharacter[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Delete campaign state
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   // Manual character add form state
   const [showManualForm, setShowManualForm] = useState(false)
@@ -292,6 +298,36 @@ export default function CampaignAdminPage() {
       toast.error(`Failed to add character: ${(error as Error).message}`)
     } finally {
       setAddingCharacter(false)
+    }
+  }
+
+  const handleDeleteCampaign = async () => {
+    if (deleteConfirmation !== 'DELETE') {
+      toast.error('Please type DELETE to confirm')
+      return
+    }
+
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/campaigns?slug=${campaign?.slug}&confirmation=DELETE`, {
+        method: 'DELETE',
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        toast.success('Campaign deleted successfully')
+        router.push('/dashboard')
+      } else {
+        toast.error(data.error || 'Failed to delete campaign')
+      }
+    } catch (error) {
+      console.error('Delete error:', error)
+      toast.error('Failed to delete campaign')
+    } finally {
+      setDeleting(false)
+      setShowDeleteModal(false)
+      setDeleteConfirmation('')
     }
   }
 
@@ -809,8 +845,100 @@ export default function CampaignAdminPage() {
 
           {/* Campaign Access Section */}
           <CampaignAccessManager campaignId={campaignId} />
+
+          {/* Danger Zone - Delete Campaign */}
+          <Card className="border-destructive/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+                Danger Zone
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-foreground">Delete this campaign</p>
+                  <p className="text-sm text-muted-foreground">
+                    Permanently delete this campaign and all its content. This action cannot be undone.
+                  </p>
+                </div>
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Campaign
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="max-w-md w-full mx-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+                Delete Campaign
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
+                You are about to permanently delete <strong className="text-foreground">{campaign.name}</strong>.
+                This will remove all scenes, monsters, and associated files.
+              </p>
+              <p className="text-muted-foreground">
+                This action <strong className="text-destructive">cannot be undone</strong>.
+              </p>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  Type <span className="font-mono text-destructive">DELETE</span> to confirm:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  placeholder="DELETE"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground
+                           focus:outline-none focus:ring-2 focus:ring-destructive/50 focus:border-destructive"
+                />
+              </div>
+              <div className="flex gap-3 justify-end pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowDeleteModal(false)
+                    setDeleteConfirmation('')
+                  }}
+                  disabled={deleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteCampaign}
+                  disabled={deleteConfirmation !== 'DELETE' || deleting}
+                >
+                  {deleting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Campaign
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

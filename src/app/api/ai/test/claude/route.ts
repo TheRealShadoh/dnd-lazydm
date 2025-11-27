@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/auth-options';
 import { getAIClientForUser } from '@/lib/ai/claude-client';
 import { getUserSettings } from '@/lib/auth/user-storage';
+import { decrypt, maskApiKey } from '@/lib/ai/encryption';
 
 /**
  * POST /api/ai/test/claude
@@ -18,11 +19,28 @@ export async function POST() {
     const settings = await getUserSettings(session.user.id);
     const provider = settings?.aiConfig?.aiProvider || 'claude';
 
+    // Debug: log the stored key info
+    let decryptedKeyPreview = 'N/A';
+    try {
+      if (provider === 'claude' && settings?.aiConfig?.claudeApiKey) {
+        const decrypted = decrypt(settings.aiConfig.claudeApiKey);
+        decryptedKeyPreview = maskApiKey(decrypted);
+        console.log('Decrypted Claude key preview:', decryptedKeyPreview, 'Length:', decrypted.length);
+      } else if (provider === 'openrouter' && settings?.aiConfig?.openRouterApiKey) {
+        const decrypted = decrypt(settings.aiConfig.openRouterApiKey);
+        decryptedKeyPreview = maskApiKey(decrypted);
+        console.log('Decrypted OpenRouter key preview:', decryptedKeyPreview, 'Length:', decrypted.length);
+      }
+    } catch (decryptError) {
+      console.error('Failed to decrypt key for debugging:', decryptError);
+    }
+
     console.log('Testing AI connection:', {
       userId: session.user.id,
       provider,
       hasClaudeKey: !!settings?.aiConfig?.claudeApiKey,
       hasOpenRouterKey: !!settings?.aiConfig?.openRouterApiKey,
+      decryptedKeyPreview,
     });
 
     const client = await getAIClientForUser(session.user.id);
@@ -39,6 +57,8 @@ export async function POST() {
     }
 
     const result = await client.testConnection();
+
+    console.log('Test connection result:', result);
 
     return NextResponse.json({
       ...result,
