@@ -43,6 +43,24 @@ export const SensesSchema = z.union([
 ]).optional();
 
 /**
+ * Skills schema - handles array or object format
+ * Can be: ["Perception +5"] or { Perception: 5 }
+ */
+export const SkillsSchema = z.union([
+  z.array(z.string()),
+  z.record(z.string(), z.union([z.string(), z.number()])),
+]).optional();
+
+/**
+ * Saving throws schema - handles array or object format
+ * Can be: ["Dex +5"] or { dexterity: 5 }
+ */
+export const SavingThrowsSchema = z.union([
+  z.array(z.string()),
+  z.record(z.string(), z.union([z.string(), z.number()])),
+]).optional();
+
+/**
  * Generated Monster schema
  */
 export const GeneratedMonsterSchema = z.object({
@@ -56,8 +74,8 @@ export const GeneratedMonsterSchema = z.object({
   hitDice: z.string().min(1),
   speed: SpeedSchema,
   abilities: AbilitiesSchema,
-  savingThrows: z.array(z.string()).optional(),
-  skills: z.array(z.string()).optional(),
+  savingThrows: SavingThrowsSchema,
+  skills: SkillsSchema,
   damageVulnerabilities: z.array(z.string()).optional(),
   damageResistances: z.array(z.string()).optional(),
   damageImmunities: z.array(z.string()).optional(),

@@ -28,16 +28,23 @@ interface Trait {
 }
 
 /**
- * Normalize senses from AI response - handles both array and object formats
+ * Normalize array or object fields from AI response to string
  */
-function normalizeSenses(senses: string[] | Record<string, string | number> | undefined): string {
-  if (!senses) return 'Passive Perception 10'
-  if (Array.isArray(senses)) return senses.join(', ')
-  // Handle object format: { darkvision: "60 ft.", passive_perception: 12 }
-  return Object.entries(senses)
+function normalizeArrayOrObject(
+  data: string[] | Record<string, string | number> | undefined,
+  defaultValue: string = ''
+): string {
+  if (!data) return defaultValue
+  if (Array.isArray(data)) return data.join(', ')
+  // Handle object format: { key: value } -> "Key +value" or "Key value"
+  return Object.entries(data)
     .map(([key, value]) => {
       const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-      return typeof value === 'number' ? `${formattedKey} ${value}` : `${formattedKey} ${value}`
+      if (typeof value === 'number') {
+        const sign = value >= 0 ? '+' : ''
+        return `${formattedKey} ${sign}${value}`
+      }
+      return `${formattedKey} ${value}`
     })
     .join(', ')
 }
@@ -183,11 +190,11 @@ export default function NewMonsterPage() {
     setInt(monster.abilities.int.toString())
     setWis(monster.abilities.wis.toString())
     setCha(monster.abilities.cha.toString())
-    setSaves(monster.savingThrows?.join(', ') || '')
-    setSkills(monster.skills?.join(', ') || '')
+    setSaves(normalizeArrayOrObject(monster.savingThrows))
+    setSkills(normalizeArrayOrObject(monster.skills))
     setResistances(monster.damageResistances?.join(', ') || '')
     setImmunities(monster.damageImmunities?.join(', ') || '')
-    setSenses(normalizeSenses(monster.senses))
+    setSenses(normalizeArrayOrObject(monster.senses, 'Passive Perception 10'))
     setLanguages(monster.languages?.join(', ') || '')
     setTraits(monster.traits || [])
     setActions(monster.actions || [])
