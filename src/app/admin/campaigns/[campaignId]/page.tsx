@@ -3,11 +3,15 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { Loader2, Plus, FileText, Swords, Image as ImageIcon, ExternalLink, Edit2, Eye, Upload, Users, X } from 'lucide-react'
 import { useConfirm } from '@/hooks/useConfirm'
 import { useToast } from '@/hooks/useToast'
 import { ManualCharacterForm } from '@/components/characters/ManualCharacterForm'
 import { Button } from '@/components/ui/Button'
 import { CampaignAccessManager } from '@/components/admin/CampaignAccessManager'
+import { MainNav } from '@/components/layout/MainNav'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 
 interface CampaignMetadata {
   name: string
@@ -333,10 +337,13 @@ export default function CampaignAdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading campaign...</p>
+      <div className="min-h-screen bg-background">
+        <MainNav />
+        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+            <p className="text-muted-foreground font-ui">Loading campaign...</p>
+          </div>
         </div>
       </div>
     )
@@ -344,125 +351,107 @@ export default function CampaignAdminPage() {
 
   if (!campaign) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 mb-4 mx-auto rounded-full bg-red-500/20 flex items-center justify-center">
-            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
-          <p className="text-gray-400 mb-4">Campaign not found</p>
-          <Link
-            href="/dashboard"
-            className="inline-block px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg
-                       font-semibold transition-colors duration-200"
-          >
-            Back to Dashboard
-          </Link>
+      <div className="min-h-screen bg-background">
+        <MainNav />
+        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+          <Card variant="fantasy" className="max-w-md text-center">
+            <CardContent className="pt-6">
+              <div className="w-16 h-16 mb-4 mx-auto rounded-full bg-destructive/20 flex items-center justify-center">
+                <X className="w-8 h-8 text-destructive" />
+              </div>
+              <p className="text-muted-foreground mb-4">Campaign not found</p>
+              <Link href="/dashboard">
+                <Button variant="primary">Back to Dashboard</Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <MainNav />
+      <main className="container max-w-7xl mx-auto py-8 px-4">
         {/* Header */}
-        <div className="flex items-start justify-between mb-8">
-          <div className="flex-1">
-            <Link
-              href="/dashboard"
-              className="inline-block mb-4 text-gray-400 hover:text-white transition-colors"
-            >
-              ← Back to Dashboard
+        <PageHeader
+          title={campaign.name}
+          description={campaign.description}
+          breadcrumbs={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: campaign.name },
+          ]}
+          actions={
+            <Link href={`/campaigns/${campaignId}`} target="_blank">
+              <Button variant="outline" size="sm">
+                <Eye className="h-4 w-4 mr-2" />
+                Preview
+              </Button>
             </Link>
-            <h1 className="text-4xl font-bold text-purple-400 mb-2">{campaign.name}</h1>
-            {campaign.description && (
-              <p className="text-gray-400 text-lg">{campaign.description}</p>
-            )}
-            {(campaign.level || campaign.players || campaign.duration || campaign.genre) && (
-              <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
-                {campaign.level && <div className="px-3 py-1 bg-gray-800 rounded">Level {campaign.level}</div>}
-                {campaign.players && <div className="px-3 py-1 bg-gray-800 rounded">{campaign.players} players</div>}
-                {campaign.duration && <div className="px-3 py-1 bg-gray-800 rounded">{campaign.duration}</div>}
-                {campaign.genre && <div className="px-3 py-1 bg-gray-800 rounded">{campaign.genre}</div>}
-              </div>
-            )}
+          }
+        />
+
+        {/* Campaign Meta Tags */}
+        {(campaign.level || campaign.players || campaign.duration || campaign.genre) && (
+          <div className="mb-8 flex flex-wrap gap-3">
+            {campaign.level && <span className="px-3 py-1 bg-muted rounded-lg text-sm text-muted-foreground">Level {campaign.level}</span>}
+            {campaign.players && <span className="px-3 py-1 bg-muted rounded-lg text-sm text-muted-foreground">{campaign.players} players</span>}
+            {campaign.duration && <span className="px-3 py-1 bg-muted rounded-lg text-sm text-muted-foreground">{campaign.duration}</span>}
+            {campaign.genre && <span className="px-3 py-1 bg-muted rounded-lg text-sm text-muted-foreground">{campaign.genre}</span>}
           </div>
-          <div className="flex gap-3">
-            <Link
-              href={`/campaigns/${campaignId}`}
-              target="_blank"
-              className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold
-                         transition-colors duration-200 flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              Preview
-            </Link>
-          </div>
-        </div>
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Link
-            href={`/admin/campaigns/${campaignId}/scenes/new`}
-            className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 hover:border-purple-500
-                       transition-all duration-200 group"
-          >
-            <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center
-                            group-hover:bg-purple-500/30 transition-colors">
-              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
-              Add Scene
-            </h3>
-            <p className="text-gray-400 text-sm">
-              Create a new scene with combat, roleplay, or puzzle templates
-            </p>
+          <Link href={`/admin/campaigns/${campaignId}/scenes/new`}>
+            <Card className="group h-full hover:border-primary/50 transition-all duration-200 cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="w-12 h-12 mb-3 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <FileText className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors">
+                  Add Scene
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  Create a new scene with combat, roleplay, or puzzle templates
+                </p>
+              </CardContent>
+            </Card>
           </Link>
 
-          <Link
-            href={`/admin/campaigns/${campaignId}/monsters/new`}
-            className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 hover:border-purple-500
-                       transition-all duration-200 group"
-          >
-            <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center
-                            group-hover:bg-purple-500/30 transition-colors">
-              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
-              Add Monster
-            </h3>
-            <p className="text-gray-400 text-sm">
-              Build a new monster stat block with all D&D 5e attributes
-            </p>
+          <Link href={`/admin/campaigns/${campaignId}/monsters/new`}>
+            <Card className="group h-full hover:border-primary/50 transition-all duration-200 cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="w-12 h-12 mb-3 rounded-lg bg-destructive/10 flex items-center justify-center group-hover:bg-destructive/20 transition-colors">
+                  <Swords className="w-6 h-6 text-destructive" />
+                </div>
+                <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors">
+                  Add Monster
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  Build a new monster stat block with all D&D 5e attributes
+                </p>
+              </CardContent>
+            </Card>
           </Link>
 
-          <button
+          <Card
+            className="group h-full hover:border-primary/50 transition-all duration-200 cursor-pointer"
             onClick={() => toast.info('Image upload feature coming soon!')}
-            className="bg-gray-900 border-2 border-gray-800 rounded-xl p-6 hover:border-purple-500
-                       transition-all duration-200 group text-left"
           >
-            <div className="w-12 h-12 mb-3 rounded-lg bg-purple-500/20 flex items-center justify-center
-                            group-hover:bg-purple-500/30 transition-colors">
-              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
-              Upload Images
-            </h3>
-            <p className="text-gray-400 text-sm">
-              Add images for scenes, monsters, and NPCs
-            </p>
-          </button>
+            <CardContent className="pt-6">
+              <div className="w-12 h-12 mb-3 rounded-lg bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
+                <ImageIcon className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors">
+                Upload Images
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                Add images for scenes, monsters, and NPCs
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Campaign Content Sections */}
@@ -1311,7 +1300,7 @@ export default function CampaignAdminPage() {
           {/* Campaign Access Section */}
           <CampaignAccessManager campaignId={campaignId} />
         </div>
-      </div>
+      </main>
     </div>
   )
 }

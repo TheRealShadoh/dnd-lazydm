@@ -2,50 +2,529 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --purple-primary: #ab47bc;
-  --purple-dark: #7b1fa2;
+/* ============================================
+   D&D LazyDM - Fantasy Theme CSS Variables
+   ============================================ */
+
+@layer base {
+  :root {
+    /* Default Light Mode (rarely used - app is dark-first) */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 10%;
+    --card: 0 0% 98%;
+    --card-foreground: 240 10% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+    --primary: 291 47% 51%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 291 47% 61%;
+    --primary-dark: 291 64% 42%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 10% 10%;
+    --secondary-light: 240 5% 98%;
+    --secondary-dark: 240 5% 90%;
+    --accent: 340 82% 52%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 5% 45%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 291 47% 51%;
+    --radius: 0.625rem;
+
+    /* Surface colors */
+    --surface: 0 0% 98%;
+    --surface-card: 0 0% 100%;
+    --surface-elevated: 0 0% 100%;
+
+    /* Fantasy colors */
+    --gold: 43 96% 56%;
+    --parchment: 39 77% 83%;
+    --leather: 25 40% 25%;
+    --ink: 240 10% 10%;
+
+    /* Chart colors */
+    --chart-1: 291 47% 51%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 217 91% 60%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 340 82% 52%;
+  }
+
+  .dark {
+    /* Fantasy Dark Theme - Default */
+    --background: 240 10% 4%;
+    --foreground: 0 0% 95%;
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Primary - Purple (Default Campaign Color) */
+    --primary: 291 47% 51%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 291 47% 65%;
+    --primary-dark: 291 64% 42%;
+
+    /* Secondary - Deep Purple */
+    --secondary: 291 64% 32%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-light: 291 64% 42%;
+    --secondary-dark: 291 64% 22%;
+
+    /* Accent - Pink */
+    --accent: 340 82% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Muted */
+    --muted: 240 5% 15%;
+    --muted-foreground: 240 5% 65%;
+
+    /* Destructive/Error */
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Semantic Status Colors */
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
+    /* Borders & Inputs */
+    --border: 240 5% 18%;
+    --input: 240 5% 18%;
+    --ring: 291 47% 51%;
+
+    /* Surface colors for layered UI */
+    --surface: 240 10% 4%;
+    --surface-card: 240 10% 8%;
+    --surface-elevated: 240 10% 12%;
+
+    /* Fantasy-specific colors */
+    --gold: 43 96% 56%;
+    --parchment: 39 30% 20%;
+    --leather: 25 40% 15%;
+    --ink: 0 0% 90%;
+
+    /* Chart colors */
+    --chart-1: 291 47% 51%;
+    --chart-2: 142 70% 45%;
+    --chart-3: 217 91% 60%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 340 82% 52%;
+  }
+
+  /* Apply border color to all elements */
+  * {
+    @apply border-border;
+  }
+
+  /* Base body styles */
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 }
 
-body {
-  @apply bg-gray-950 text-gray-100;
+/* ============================================
+   Fantasy UI Components
+   ============================================ */
+
+@layer components {
+  /* Fantasy Card with ornate border */
+  .fantasy-card {
+    @apply relative bg-card rounded-lg overflow-hidden;
+    @apply border border-border/50;
+    @apply shadow-fantasy;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--card)) 0%,
+      hsl(var(--surface-card)) 100%
+    );
+  }
+
+  .fantasy-card::before {
+    content: '';
+    @apply absolute inset-0 pointer-events-none;
+    @apply rounded-lg;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gold) / 0.1) 0%,
+      transparent 30%,
+      transparent 70%,
+      hsl(var(--gold) / 0.1) 100%
+    );
+  }
+
+  /* Gold border variant */
+  .fantasy-card-gold {
+    @apply fantasy-card;
+    border: 2px solid transparent;
+    background:
+      linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
+      linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(var(--gold) / 0.3) 50%, hsl(var(--gold)) 100%) border-box;
+  }
+
+  /* Parchment background effect */
+  .parchment-bg {
+    @apply relative;
+    background-color: hsl(var(--parchment));
+    background-image: var(--texture-parchment, none);
+  }
+
+  .parchment-bg::after {
+    content: '';
+    @apply absolute inset-0 pointer-events-none;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      hsl(var(--ink) / 0.05) 100%
+    );
+  }
+
+  /* Fantasy button base */
+  .fantasy-btn {
+    @apply inline-flex items-center justify-center;
+    @apply font-medium transition-all duration-200;
+    @apply rounded-lg px-4 py-2;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .fantasy-btn-primary {
+    @apply fantasy-btn;
+    @apply bg-gradient-to-b from-primary to-primary-dark;
+    @apply text-primary-foreground;
+    @apply border border-primary-light/20;
+    @apply shadow-fantasy hover:shadow-glow;
+    @apply hover:brightness-110;
+  }
+
+  .fantasy-btn-gold {
+    @apply fantasy-btn;
+    @apply bg-gradient-to-b from-amber-500 to-amber-600;
+    @apply text-black font-bold;
+    @apply border border-amber-400/50;
+    @apply shadow-gold-glow hover:brightness-110;
+  }
+
+  /* Fantasy section divider */
+  .fantasy-divider {
+    @apply relative h-8 my-8 border-none;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 20"><path d="M0 10 Q 50 0, 100 10 T 200 10" stroke="hsl(291, 47%, 51%)" stroke-width="1.5" fill="none" opacity="0.6"/><circle cx="100" cy="10" r="3" fill="hsl(43, 96%, 56%)"/><circle cx="60" cy="10" r="1.5" fill="hsl(291, 47%, 51%)" opacity="0.6"/><circle cx="140" cy="10" r="1.5" fill="hsl(291, 47%, 51%)" opacity="0.6"/></svg>') center center no-repeat;
+    background-size: 60% 100%;
+  }
+
+  /* Ornate header */
+  .fantasy-header {
+    @apply relative text-center py-4;
+  }
+
+  .fantasy-header::before,
+  .fantasy-header::after {
+    content: '';
+    @apply absolute top-1/2 -translate-y-1/2 w-16 h-px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--gold)),
+      transparent
+    );
+  }
+
+  .fantasy-header::before {
+    @apply right-full mr-4;
+  }
+
+  .fantasy-header::after {
+    @apply left-full ml-4;
+  }
 }
 
-/* Fantasy Dividers */
-.prose hr {
-  @apply border-none h-8 my-8;
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 10"><path d="M0 5 Q 25 0, 50 5 T 100 5" stroke="%23ab47bc" stroke-width="1" fill="none"/><circle cx="50" cy="5" r="2" fill="%23ab47bc"/></svg>') center center no-repeat;
-  background-size: 80% 100%;
-}
+/* ============================================
+   Custom Scrollbar
+   ============================================ */
 
-/* Dice Notation Styling */
-.dice-notation {
-  @apply inline-block px-2 py-1 rounded bg-gradient-to-br from-purple-500/20 to-purple-700/20;
-  @apply border border-purple-500/30 font-mono text-sm font-bold cursor-pointer;
-  @apply transition-all duration-200 hover:from-purple-500/40 hover:to-purple-700/40;
-  @apply hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/40;
-}
-
-/* Image Styling */
-.prose img {
-  @apply rounded-lg shadow-lg shadow-purple-500/30 transition-all duration-300;
-  @apply hover:shadow-xl hover:shadow-purple-500/50 hover:scale-[1.02];
-}
-
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-900;
+  @apply bg-surface;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-purple-500/50 rounded-full;
+  @apply bg-primary/40 rounded-full;
+  @apply hover:bg-primary/60;
+  @apply transition-colors;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-purple-500/70;
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary) / 0.4) hsl(var(--surface));
+}
+
+/* ============================================
+   Prose/Typography Enhancements
+   ============================================ */
+
+/* Fantasy Dividers in prose */
+.prose hr {
+  @apply fantasy-divider;
+}
+
+/* Image Styling in prose */
+.prose img {
+  @apply rounded-lg shadow-fantasy transition-all duration-300;
+  @apply hover:shadow-glow hover:scale-[1.02];
+}
+
+/* Dice Notation Styling */
+.dice-notation {
+  @apply inline-block px-2 py-1 rounded;
+  @apply bg-gradient-to-br from-primary/20 to-primary-dark/20;
+  @apply border border-primary/30;
+  @apply font-mono text-sm font-bold cursor-pointer;
+  @apply transition-all duration-200;
+  @apply hover:from-primary/40 hover:to-primary-dark/40;
+  @apply hover:border-primary hover:shadow-glow;
+}
+
+/* ============================================
+   Focus States (Accessibility)
+   ============================================ */
+
+@layer utilities {
+  .focus-ring {
+    @apply focus-visible:outline-none;
+    @apply focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply focus-visible:ring-offset-background;
+  }
+}
+
+/* ============================================
+   Selection Styling
+   ============================================ */
+
+::selection {
+  @apply bg-primary/30 text-foreground;
+}
+
+/* ============================================
+   Texture CSS Variables
+   ============================================ */
+
+:root {
+  --texture-parchment: url('/textures/parchment.svg');
+  --texture-leather: url('/textures/leather.svg');
+  --texture-stone: url('/textures/stone.svg');
+  --texture-stars: url('/textures/stars.svg');
+  --texture-noise: url('/textures/noise.svg');
+  --decoration-corner: url('/decorations/corner-ornament.svg');
+  --decoration-divider: url('/decorations/divider.svg');
+  --decoration-frame: url('/decorations/border-frame.svg');
+}
+
+/* ============================================
+   Campaign Theme Override Layer
+   When a campaign theme is applied, these vars
+   will be set dynamically via JavaScript
+   ============================================ */
+
+[data-campaign-theme="true"] {
+  /* Campaign colors override default primary/secondary */
+  --primary: var(--campaign-primary, 291 47% 51%);
+  --primary-foreground: var(--campaign-primary-foreground, 0 0% 100%);
+  --primary-light: var(--campaign-primary-light, 291 47% 65%);
+  --primary-dark: var(--campaign-primary-dark, 291 64% 42%);
+
+  --secondary: var(--campaign-secondary, 291 64% 32%);
+  --secondary-foreground: var(--campaign-secondary-foreground, 0 0% 100%);
+  --secondary-light: var(--campaign-secondary-light, 291 64% 42%);
+  --secondary-dark: var(--campaign-secondary-dark, 291 64% 22%);
+
+  --accent: var(--campaign-accent, 340 82% 52%);
+  --accent-foreground: var(--campaign-accent-foreground, 0 0% 100%);
+
+  /* Auto-derived semantic colors */
+  --success: var(--campaign-success, 142 70% 45%);
+  --warning: var(--campaign-warning, 38 92% 50%);
+  --info: var(--campaign-info, 217 91% 60%);
+
+  /* Gold adapts to campaign theme */
+  --gold: var(--campaign-gold, 43 96% 56%);
+}
+
+/* ============================================
+   Markdown Editor Overrides
+   ============================================ */
+
+.w-md-editor {
+  --color-fg-default: hsl(var(--foreground)) !important;
+  --color-canvas-default: hsl(var(--card)) !important;
+  --color-border-default: hsl(var(--border)) !important;
+  --color-neutral-muted: hsl(var(--muted)) !important;
+}
+
+.w-md-editor-toolbar {
+  @apply bg-surface-card border-b border-border !important;
+}
+
+.w-md-editor-content {
+  @apply bg-card !important;
+}
+
+.w-md-editor-text-pre > code,
+.w-md-editor-text-input {
+  @apply font-mono !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* ============================================
+   Animation Utilities
+   ============================================ */
+
+@layer utilities {
+  .animate-in {
+    animation: animate-in 0.2s ease-out;
+  }
+
+  .animate-out {
+    animation: animate-out 0.2s ease-in;
+  }
+
+  @keyframes animate-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes animate-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+}
+
+/* ============================================
+   Mobile & Touch Optimizations
+   ============================================ */
+
+/* Increase touch targets on mobile */
+@media (max-width: 768px) {
+  /* Larger touch targets */
+  button,
+  a,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Adjust card padding for mobile */
+  .card-content {
+    padding: 1rem;
+  }
+
+  /* Stack horizontal button groups on mobile */
+  .button-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Full width buttons on mobile */
+  .button-full-mobile {
+    width: 100%;
+  }
+
+  /* Reduce heading sizes on mobile */
+  h1 {
+    font-size: 1.875rem !important;
+  }
+
+  h2 {
+    font-size: 1.5rem !important;
+  }
+
+  h3 {
+    font-size: 1.25rem !important;
+  }
+
+  /* Tighter spacing on mobile */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Hover states only on devices that support hover */
+@media (hover: hover) and (pointer: fine) {
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px hsl(var(--primary) / 0.15);
+  }
+}
+
+/* Disable hover effects on touch devices */
+@media (hover: none) {
+  .hover-lift:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .safe-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -4,6 +4,26 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
+import {
+  Loader2,
+  Plus,
+  Map,
+  BookOpen,
+  Users,
+  Swords,
+  ScrollText,
+  RefreshCw,
+  Home,
+  Crown,
+  Shield,
+  User
+} from 'lucide-react'
+import { MainNav } from '@/components/layout/MainNav'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { cn } from '@/lib/utils'
 
 interface CampaignMetadata {
   name: string
@@ -69,6 +89,18 @@ interface SRDStatus {
   }
 }
 
+function getRoleIcon(role: string) {
+  if (role === 'Owner') return <Crown className="h-3 w-3" />
+  if (role === 'DM') return <Shield className="h-3 w-3" />
+  return <User className="h-3 w-3" />
+}
+
+function getRoleColor(role: string) {
+  if (role.includes('Unassigned')) return 'bg-warning/20 text-warning border-warning/30'
+  if (role === 'Owner' || role === 'DM') return 'bg-primary/20 text-primary border-primary/30'
+  return 'bg-secondary/20 text-secondary border-secondary/30'
+}
+
 export default function UnifiedDashboard() {
   const { data: session, status } = useSession()
   const [campaigns, setCampaigns] = useState<CampaignStats[]>([])
@@ -76,7 +108,6 @@ export default function UnifiedDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'all'>('overview')
   const [srdStatus, setSrdStatus] = useState<SRDStatus | null>(null)
-  const [selectedCampaign, setSelectedCampaign] = useState<string | null>(null)
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -103,7 +134,7 @@ export default function UnifiedDashboard() {
 
         // Determine user's role and load stats for each campaign
         const userId = session?.user?.id || ''
-        const isAdmin = (session?.user as any)?.isAdmin || false
+        const isAdmin = (session?.user as { isAdmin?: boolean })?.isAdmin || false
         const campaignStats: CampaignStats[] = []
 
         for (const campaign of allCampaigns) {
@@ -191,10 +222,13 @@ export default function UnifiedDashboard() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading dashboard...</p>
+      <div className="min-h-screen bg-background">
+        <MainNav />
+        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+            <p className="text-muted-foreground font-ui">Loading your adventures...</p>
+          </div>
         </div>
       </div>
     )
@@ -202,227 +236,251 @@ export default function UnifiedDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4">⚠️</div>
-          <h3 className="text-xl font-bold text-red-400 mb-2">Error Loading Dashboard</h3>
-          <p className="text-gray-400 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg font-semibold transition-colors duration-200"
-          >
-            Retry
-          </button>
+      <div className="min-h-screen bg-background">
+        <MainNav />
+        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+          <Card variant="fantasy" className="max-w-md text-center">
+            <CardHeader>
+              <CardTitle className="text-destructive">Error Loading Dashboard</CardTitle>
+              <CardDescription>{error}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => window.location.reload()} variant="primary">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
   }
 
   const userCampaigns = campaigns.filter(c => c.role === 'Player' || c.role === 'Owner' || c.role === 'DM')
-  const ownedCampaigns = campaigns.filter(c => c.role === 'Owner' || c.role === 'DM')
-  const isAdmin = (session?.user as any)?.isAdmin || false
+  const isAdmin = (session?.user as { isAdmin?: boolean })?.isAdmin || false
 
   return (
-    <div className="min-h-screen bg-gray-950 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-4xl font-bold text-purple-400">
-                Welcome, {session?.user?.name}!
-              </h1>
-              <p className="mt-2 text-gray-400">
-                Manage your campaigns, characters, and adventures
-              </p>
-            </div>
-            <Link
-              href="/"
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2"
-            >
-              <span>←</span>
-              Home
-            </Link>
-          </div>
+    <div className="min-h-screen bg-background">
+      <MainNav />
 
-          {/* Tab Navigation */}
-          <div className="flex gap-2 border-b border-gray-800">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`px-6 py-3 font-semibold transition-colors duration-200 border-b-2 ${
-                activeTab === 'overview'
-                  ? 'border-purple-500 text-purple-400'
-                  : 'border-transparent text-gray-400 hover:text-white'
-              }`}
-            >
-              My Campaigns
-            </button>
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`px-6 py-3 font-semibold transition-colors duration-200 border-b-2 ${
-                activeTab === 'all'
-                  ? 'border-purple-500 text-purple-400'
-                  : 'border-transparent text-gray-400 hover:text-white'
-              }`}
-            >
-              All Campaigns {isAdmin && `(Admin)`}
-            </button>
-          </div>
+      <main className="container max-w-7xl mx-auto py-8 px-4">
+        <PageHeader
+          title={`Welcome, ${session?.user?.name}!`}
+          description="Manage your campaigns, characters, and adventures"
+          actions={
+            <Link href="/">
+              <Button variant="outline" size="sm">
+                <Home className="h-4 w-4 mr-2" />
+                Home
+              </Button>
+            </Link>
+          }
+        />
+
+        {/* Tab Navigation */}
+        <div className="flex gap-2 border-b border-border mb-8">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={cn(
+              'px-6 py-3 font-semibold transition-colors border-b-2 font-ui',
+              activeTab === 'overview'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            )}
+          >
+            My Campaigns
+          </button>
+          <button
+            onClick={() => setActiveTab('all')}
+            className={cn(
+              'px-6 py-3 font-semibold transition-colors border-b-2 font-ui',
+              activeTab === 'all'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            )}
+          >
+            All Campaigns {isAdmin && '(Admin)'}
+          </button>
         </div>
 
         {/* SRD Status Banner */}
         {srdStatus && (
-          <div className="mb-6 p-4 bg-gray-900 rounded-lg border border-gray-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-purple-400 mb-1">SRD Reference Database</h3>
-                <p className="text-xs text-gray-400">
-                  {srdStatus.counts ? (
-                    <>
-                      {srdStatus.counts.monsters} monsters, {srdStatus.counts.spells} spells, {srdStatus.counts.items} items
-                      {srdStatus.lastSyncDate && (
-                        <> • Last synced {srdStatus.ageHours}h ago</>
+          <Card className="mb-6">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <BookOpen className="h-5 w-5 text-primary" />
+                  <div>
+                    <h3 className="text-sm font-semibold font-display text-foreground">SRD Reference Database</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {srdStatus.counts ? (
+                        <>
+                          {srdStatus.counts.monsters} monsters, {srdStatus.counts.spells} spells, {srdStatus.counts.items} items
+                          {srdStatus.lastSyncDate && (
+                            <> &bull; Last synced {srdStatus.ageHours}h ago</>
+                          )}
+                        </>
+                      ) : (
+                        'Not initialized'
                       )}
-                    </>
-                  ) : (
-                    'Not initialized'
-                  )}
-                </p>
+                    </p>
+                  </div>
+                </div>
+                <Link href="/admin/srd">
+                  <Button variant="secondary" size="sm">
+                    Manage SRD
+                  </Button>
+                </Link>
               </div>
-              <Link
-                href="/admin/srd"
-                className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg text-sm font-semibold transition-colors duration-200"
-              >
-                Manage SRD
-              </Link>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-            <div className="text-3xl font-bold text-purple-400 mb-1">
-              {activeTab === 'overview' ? userCampaigns.length : campaigns.length}
-            </div>
-            <div className="text-sm text-gray-400">Active Campaigns</div>
-          </div>
-          <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-            <div className="text-3xl font-bold text-blue-400 mb-1">
-              {campaigns.reduce((sum, c) => sum + c.characterCount, 0)}
-            </div>
-            <div className="text-sm text-gray-400">Total Characters</div>
-          </div>
-          <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-            <div className="text-3xl font-bold text-green-400 mb-1">
-              {campaigns.reduce((sum, c) => sum + c.sceneCount, 0)}
-            </div>
-            <div className="text-sm text-gray-400">Total Scenes</div>
-          </div>
-          <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-            <div className="text-3xl font-bold text-red-400 mb-1">
-              {campaigns.reduce((sum, c) => sum + c.monsterCount, 0)}
-            </div>
-            <div className="text-sm text-gray-400">Total Monsters</div>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <ScrollText className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold font-display text-primary">
+                    {activeTab === 'overview' ? userCampaigns.length : campaigns.length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Active Campaigns</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-secondary/10">
+                  <Users className="h-5 w-5 text-secondary" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold font-display text-secondary">
+                    {campaigns.reduce((sum, c) => sum + c.characterCount, 0)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Total Characters</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-success/10">
+                  <Map className="h-5 w-5 text-success" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold font-display text-success">
+                    {campaigns.reduce((sum, c) => sum + c.sceneCount, 0)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Total Scenes</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-destructive/10">
+                  <Swords className="h-5 w-5 text-destructive" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold font-display text-destructive">
+                    {campaigns.reduce((sum, c) => sum + c.monsterCount, 0)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Total Monsters</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Quick Actions */}
         <div className="mb-8 flex flex-wrap gap-3">
-          <Link
-            href="/admin/campaigns/new"
-            className="px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2"
-          >
-            <span>➕</span>
-            New Campaign
+          <Link href="/admin/campaigns/new">
+            <Button variant="primary">
+              <Plus className="h-4 w-4 mr-2" />
+              New Campaign
+            </Button>
           </Link>
-          {ownedCampaigns.length > 0 && (
-            <>
-              <Link
-                href={`/admin/campaigns/${ownedCampaigns[0].campaign.slug}/scenes/new`}
-                className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2"
-              >
-                <span>🎭</span>
-                New Scene
-              </Link>
-              <Link
-                href={`/admin/campaigns/${ownedCampaigns[0].campaign.slug}/monsters/new`}
-                className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2"
-              >
-                <span>👹</span>
-                New Monster
-              </Link>
-            </>
-          )}
-          <Link
-            href="/vtt"
-            className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold transition-colors duration-200 flex items-center gap-2"
-          >
-            <span>🗺️</span>
-            Virtual Tabletop
+          <Link href="/vtt">
+            <Button variant="secondary">
+              <Map className="h-4 w-4 mr-2" />
+              Virtual Tabletop
+            </Button>
           </Link>
         </div>
 
         {/* Campaign Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {campaigns.length === 0 ? (
-            <div className="col-span-full text-center py-16">
-              <div className="text-6xl mb-4">📚</div>
-              <h3 className="text-xl font-bold text-gray-400 mb-2">No campaigns yet</h3>
-              <p className="text-gray-500 mb-4">Create your first campaign to get started</p>
-              <Link
-                href="/admin/campaigns/new"
-                className="inline-block px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg font-semibold transition-colors duration-200"
-              >
-                Create Campaign
-              </Link>
+            <div className="col-span-full">
+              <Card variant="fantasy" className="text-center py-16">
+                <CardContent>
+                  <ScrollText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-bold font-display text-foreground mb-2">No campaigns yet</h3>
+                  <p className="text-muted-foreground mb-6">Create your first campaign to get started</p>
+                  <Link href="/admin/campaigns/new">
+                    <Button variant="primary">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Campaign
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
             </div>
           ) : (
             (activeTab === 'overview' ? userCampaigns : campaigns).map(({ campaign, role, sceneCount, monsterCount, characterCount }) => (
-              <div
+              <Card
                 key={campaign.slug}
-                className="group bg-gray-900 rounded-xl overflow-hidden border-2 border-gray-800 hover:border-purple-500 transition-all duration-200 hover:shadow-xl hover:shadow-purple-500/20"
+                variant="fantasy"
+                className="group overflow-hidden hover:shadow-fantasy-lg transition-all duration-300"
               >
                 {/* Campaign Thumbnail */}
-                <div className="aspect-video bg-gray-800 relative overflow-hidden">
+                <div className="aspect-video bg-muted relative overflow-hidden">
                   {campaign.thumbnail ? (
-                    <img
+                    <Image
                       src={campaign.thumbnail}
                       alt={campaign.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                       onError={(e) => {
-                        e.currentTarget.src = '/placeholder-campaign.jpg'
+                        const target = e.target as HTMLImageElement
+                        target.src = '/placeholder-campaign.jpg'
                       }}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-6xl">
-                      🎲
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ScrollText className="h-16 w-16 text-muted-foreground/50" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
 
                   {/* Role Badge */}
                   <div className="absolute top-3 right-3">
                     <span
-                      className={`px-3 py-1 text-xs font-bold rounded-full ${
-                        role.includes('Unassigned')
-                          ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                          : role === 'Owner' || role === 'DM'
-                          ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                          : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                      }`}
+                      className={cn(
+                        'inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded-full border',
+                        getRoleColor(role)
+                      )}
                     >
+                      {getRoleIcon(role)}
                       {role}
                     </span>
                   </div>
                 </div>
 
                 {/* Campaign Info */}
-                <div className="p-4">
-                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors line-clamp-1">
+                <CardContent className="p-4">
+                  <h3 className="text-xl font-bold font-display text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-1">
                     {campaign.name}
                   </h3>
-                  <p className="text-gray-400 text-sm line-clamp-2 mb-3">
+                  <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
                     {campaign.description || 'No description'}
                   </p>
 
@@ -430,17 +488,17 @@ export default function UnifiedDashboard() {
                   {(campaign.level || campaign.players || campaign.genre) && (
                     <div className="mb-3 flex flex-wrap gap-2 text-xs">
                       {campaign.level && (
-                        <span className="px-2 py-1 bg-gray-800 rounded text-gray-400">
+                        <span className="px-2 py-1 bg-muted rounded text-muted-foreground">
                           Level {campaign.level}
                         </span>
                       )}
                       {campaign.players && (
-                        <span className="px-2 py-1 bg-gray-800 rounded text-gray-400">
+                        <span className="px-2 py-1 bg-muted rounded text-muted-foreground">
                           {campaign.players} players
                         </span>
                       )}
                       {campaign.genre && (
-                        <span className="px-2 py-1 bg-gray-800 rounded text-gray-400">
+                        <span className="px-2 py-1 bg-muted rounded text-muted-foreground">
                           {campaign.genre}
                         </span>
                       )}
@@ -448,44 +506,42 @@ export default function UnifiedDashboard() {
                   )}
 
                   {/* Stats */}
-                  <div className="grid grid-cols-3 gap-2 mb-3 text-center">
-                    <div className="bg-gray-800/50 rounded p-2">
-                      <div className="text-lg font-bold text-green-400">{sceneCount}</div>
-                      <div className="text-xs text-gray-500">Scenes</div>
+                  <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+                    <div className="bg-muted/50 rounded-lg p-2">
+                      <div className="text-lg font-bold font-display text-success">{sceneCount}</div>
+                      <div className="text-xs text-muted-foreground">Scenes</div>
                     </div>
-                    <div className="bg-gray-800/50 rounded p-2">
-                      <div className="text-lg font-bold text-blue-400">{characterCount}</div>
-                      <div className="text-xs text-gray-500">Characters</div>
+                    <div className="bg-muted/50 rounded-lg p-2">
+                      <div className="text-lg font-bold font-display text-secondary">{characterCount}</div>
+                      <div className="text-xs text-muted-foreground">Characters</div>
                     </div>
-                    <div className="bg-gray-800/50 rounded p-2">
-                      <div className="text-lg font-bold text-red-400">{monsterCount}</div>
-                      <div className="text-xs text-gray-500">Monsters</div>
+                    <div className="bg-muted/50 rounded-lg p-2">
+                      <div className="text-lg font-bold font-display text-destructive">{monsterCount}</div>
+                      <div className="text-xs text-muted-foreground">Monsters</div>
                     </div>
                   </div>
 
                   {/* Action Buttons */}
                   <div className="grid grid-cols-2 gap-2">
-                    <Link
-                      href={`/campaigns/${campaign.slug}`}
-                      className="px-3 py-2 bg-purple-500 hover:bg-purple-600 rounded text-sm font-semibold text-center transition-colors duration-200"
-                    >
-                      View
+                    <Link href={`/campaigns/${campaign.slug}`}>
+                      <Button variant="primary" className="w-full" size="sm">
+                        View
+                      </Button>
                     </Link>
                     {(role === 'Owner' || role === 'DM' || role === 'Admin' || role.includes('Unassigned')) && (
-                      <Link
-                        href={`/admin/campaigns/${campaign.slug}`}
-                        className="px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded text-sm font-semibold text-center transition-colors duration-200"
-                      >
-                        Manage
+                      <Link href={`/admin/campaigns/${campaign.slug}`}>
+                        <Button variant="outline" className="w-full" size="sm">
+                          Manage
+                        </Button>
                       </Link>
                     )}
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))
           )}
         </div>
-      </div>
+      </main>
     </div>
   )
 }

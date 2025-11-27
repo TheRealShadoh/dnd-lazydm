@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="frameGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5d78e"/>
+      <stop offset="50%" stop-color="#d4a853"/>
+      <stop offset="100%" stop-color="#a67c00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer frame -->
+  <rect x="0" y="0" width="100" height="100"
+        fill="none" stroke="url(#frameGold)" stroke-width="2" opacity="0.6"/>
+
+  <!-- Inner frame -->
+  <rect x="4" y="4" width="92" height="92"
+        fill="none" stroke="url(#frameGold)" stroke-width="1" opacity="0.4"/>
+
+  <!-- Corner decorations -->
+  <!-- Top-left -->
+  <path d="M0 15 L0 0 L15 0" fill="none" stroke="url(#frameGold)" stroke-width="3"/>
+  <circle cx="3" cy="3" r="2" fill="#d4a853"/>
+
+  <!-- Top-right -->
+  <path d="M85 0 L100 0 L100 15" fill="none" stroke="url(#frameGold)" stroke-width="3"/>
+  <circle cx="97" cy="3" r="2" fill="#d4a853"/>
+
+  <!-- Bottom-left -->
+  <path d="M0 85 L0 100 L15 100" fill="none" stroke="url(#frameGold)" stroke-width="3"/>
+  <circle cx="3" cy="97" r="2" fill="#d4a853"/>
+
+  <!-- Bottom-right -->
+  <path d="M85 100 L100 100 L100 85" fill="none" stroke="url(#frameGold)" stroke-width="3"/>
+  <circle cx="97" cy="97" r="2" fill="#d4a853"/>
+</svg>

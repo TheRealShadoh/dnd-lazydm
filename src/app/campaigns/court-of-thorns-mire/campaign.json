@@ -14,7 +14,9 @@
   "createdAt": "2025-01-16T00:00:00.000Z",
   "access": {
     "ownerId": "",
-    "dmIds": [],
+    "dmIds": [
+      "user_2b0PbIRrUhN2_CSiLV1X2"
+    ],
     "playerAssignments": []
   },
   "dndbeyond": {
