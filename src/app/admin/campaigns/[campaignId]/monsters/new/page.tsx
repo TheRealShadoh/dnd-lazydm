@@ -15,6 +15,7 @@ import Link from 'next/link'
 import { MonsterTemplateSelector } from '@/components/srd'
 import { srdMonsterToFormData } from '@/lib/srd/form-mappers'
 import type { SRDMonster } from '@/lib/srd/models'
+import { AIMonsterGenerator, type GeneratedMonsterData } from '@/components/ai'
 
 interface Action {
   name: string
@@ -148,6 +149,41 @@ export default function NewMonsterPage() {
     // Don't clear the form - user may want to keep their edits
   }, [])
 
+  // AI Generation handler
+  const handleAIGenerated = useCallback((monster: GeneratedMonsterData) => {
+    // Populate form with AI-generated monster
+    setName(monster.name)
+    setSize(monster.size)
+    setType(monster.type)
+    setAlignment(monster.alignment || 'Neutral')
+    setCr(monster.challengeRating.toString())
+    setAc(monster.armorClass.toString())
+    setAcType(monster.armorType || '')
+    setHp(monster.hitPoints.toString())
+    setHitDice(monster.hitDice)
+    setSpeed(typeof monster.speed === 'string' ? monster.speed : '30 ft.')
+    setStr(monster.abilities.str.toString())
+    setDex(monster.abilities.dex.toString())
+    setConst(monster.abilities.con.toString())
+    setInt(monster.abilities.int.toString())
+    setWis(monster.abilities.wis.toString())
+    setCha(monster.abilities.cha.toString())
+    setSaves(monster.savingThrows?.join(', ') || '')
+    setSkills(monster.skills?.join(', ') || '')
+    setResistances(monster.damageResistances?.join(', ') || '')
+    setImmunities(monster.damageImmunities?.join(', ') || '')
+    setSenses(monster.senses?.join(', ') || 'Passive Perception 10')
+    setLanguages(monster.languages?.join(', ') || '')
+    setTraits(monster.traits || [])
+    setActions(monster.actions || [])
+    setImageUrl('')
+
+    // Clear template selection since this is AI-generated
+    setSelectedTemplate(null)
+
+    toast.success(`AI generated: ${monster.name}`)
+  }, [toast])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -220,6 +256,12 @@ export default function NewMonsterPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-8">
+          {/* AI Monster Generator */}
+          <AIMonsterGenerator
+            onGenerated={handleAIGenerated}
+            campaignId={campaignId}
+          />
+
           {/* SRD Template Selector */}
           <MonsterTemplateSelector
             onSelect={handleSelectTemplate}

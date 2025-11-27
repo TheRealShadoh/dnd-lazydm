@@ -6,7 +6,15 @@
       "passwordHash": "$2b$10$8JURGCsGabhzENA.uoYdgeQtqA9tO57BQlGFlA.VxUP3ukZhubAzO",
       "name": "chris",
       "isAdmin": true,
-      "createdAt": "2025-11-20T06:53:42.650Z"
+      "createdAt": "2025-11-20T06:53:42.650Z",
+      "settings": {
+        "aiConfig": {
+          "claudeApiKey": "5a854ca086b03d105426810759cf7394:7b8e07de3f31f6649651d09ba6d04eb790941dba9d17dbf1fb5b9e3183c729a419823016bab91f045067d84b81938c6caa1296b22d4f75343d931687a25a2c389fd666d4dc598b439fa31975a04fe1a4d0944acb7a186c4d1b685a3cb5ad702f477e6e4426a1ab6d31bd028c4205241f",
+          "aiProvider": "openrouter",
+          "openRouterApiKey": "aae5c8de6cfc2a94a3b5aa009e23f45e:0b6612e402b0f5dc2553d8a665bb583371945a84be33d499f98e4fedfeb6a50a949934abecf458de4d7ae82ace56b04fc62bb2ca76932f43af45618fbd2d4dba4d383c8443334e52a2e99173d14580dd",
+          "openRouterModel": "meta-llama/llama-3-8b-instruct:free"
+        }
+      }
     },
     {
       "id": "user_16CrNq3xPZi5Fs4ZRH3hf",
@@ -14,6 +22,14 @@
       "passwordHash": "$2b$10$RM.eCF2Z4D.L9aVr.c5YcOCfRbqjE.GaLnX.JbqYSR5A/c6Kuov1e",
       "name": "Tester ",
       "createdAt": "2025-11-27T02:47:35.586Z",
+      "isAdmin": false
+    },
+    {
+      "id": "user_UBxfp-T8lQXPVzt6OhfZO",
+      "email": "fuckthepolice@abc.com",
+      "passwordHash": "$2b$10$SMc/XPvKrYwG0JfObElFMOZEV.le4XEQzd5slW/GurJIbwtSt7Wwi",
+      "name": "Matthew Smith",
+      "createdAt": "2025-11-27T03:45:11.684Z",
       "isAdmin": false
     }
   ]

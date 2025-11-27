@@ -17,7 +17,18 @@
     "dmIds": [
       "user_2b0PbIRrUhN2_CSiLV1X2"
     ],
-    "playerAssignments": []
+    "playerAssignments": [
+      {
+        "userId": "user_16CrNq3xPZi5Fs4ZRH3hf",
+        "characterIds": [],
+        "assignedTokenIds": []
+      },
+      {
+        "userId": "user_UBxfp-T8lQXPVzt6OhfZO",
+        "characterIds": [],
+        "assignedTokenIds": []
+      }
+    ]
   },
   "dndbeyond": {
     "characters": []

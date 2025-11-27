@@ -2,7 +2,7 @@
 
 import { signOut, useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { LayoutDashboard, BookOpen, Map, LogOut } from 'lucide-react'
+import { LayoutDashboard, BookOpen, Map, LogOut, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import {
   DropdownMenu,
@@ -78,6 +78,12 @@ export default function UserMenu() {
           <Link href="/vtt" className="cursor-pointer">
             <Map className="mr-2 h-4 w-4" />
             Virtual Tabletop
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/settings" className="cursor-pointer">
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
