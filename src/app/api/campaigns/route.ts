@@ -161,6 +161,16 @@ Add your monster stat blocks here.
 
 export async function GET() {
   try {
+    // Get the current session for access control
+    const session = await auth()
+
+    if (!session?.user) {
+      return NextResponse.json({ campaigns: [] })
+    }
+
+    const userId = session.user.id || ''
+    const isAdmin = (session.user as { isAdmin?: boolean })?.isAdmin || false
+
     // List all campaigns
     const campaignsPath = path.join(process.cwd(), 'src', 'app', 'campaigns')
 
@@ -178,7 +188,19 @@ export async function GET() {
         const metadataPath = path.join(campaignsPath, entry.name, 'campaign.json')
         try {
           const metadata = await fs.readFile(metadataPath, 'utf-8')
-          campaigns.push(JSON.parse(metadata))
+          const campaign = JSON.parse(metadata)
+
+          // Check if user has access to this campaign
+          const access = campaign.access
+          const hasAccess =
+            isAdmin ||
+            (userId && access?.ownerId && access.ownerId === userId) ||
+            (userId && access?.dmIds?.includes(userId)) ||
+            (userId && access?.playerAssignments?.some((p: { userId: string }) => p.userId === userId))
+
+          if (hasAccess) {
+            campaigns.push(campaign)
+          }
         } catch {
           // Skip directories without campaign.json
           continue

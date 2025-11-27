@@ -142,11 +142,12 @@ export default function UnifiedDashboard() {
           let role = ''
           const access = campaign.access
 
-          if (access?.ownerId === userId) {
+          // Only match if userId is non-empty to prevent empty string matching empty ownerId
+          if (userId && access?.ownerId && access.ownerId === userId) {
             role = 'Owner'
-          } else if (access?.dmIds?.includes(userId)) {
+          } else if (userId && access?.dmIds?.includes(userId)) {
             role = 'DM'
-          } else if (access?.playerAssignments?.some(p => p.userId === userId)) {
+          } else if (userId && access?.playerAssignments?.some(p => p.userId === userId)) {
             role = 'Player'
           } else if (isAdmin) {
             role = access?.ownerId ? 'Admin' : 'Unassigned (Admin)'

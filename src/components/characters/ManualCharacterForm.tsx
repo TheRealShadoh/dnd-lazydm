@@ -2,6 +2,11 @@
 
 import { Accordion, AccordionItem } from '@/components/ui/Accordion'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { SRDSuggestionInput } from '@/components/srd'
+import { BookOpen } from 'lucide-react'
+import Link from 'next/link'
 
 interface ManualCharacterData {
   name: string
@@ -75,85 +80,84 @@ export function ManualCharacterForm({
 
   return (
     <div className="space-y-3">
+      {/* SRD Quick Links */}
+      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <BookOpen className="h-4 w-4" />
+          <span>Need help? Browse the SRD for reference</span>
+        </div>
+        <div className="flex gap-2">
+          <Link href="/srd?type=races" target="_blank">
+            <Button variant="ghost" size="sm">Races</Button>
+          </Link>
+          <Link href="/srd?type=classes" target="_blank">
+            <Button variant="ghost" size="sm">Classes</Button>
+          </Link>
+          <Link href="/srd?type=backgrounds" target="_blank">
+            <Button variant="ghost" size="sm">Backgrounds</Button>
+          </Link>
+        </div>
+      </div>
+
       <Accordion>
         {/* Basic Information */}
         <AccordionItem title="Basic Information" defaultOpen badge="Required">
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Name <span className="text-red-400">*</span>
-                </label>
-                <input
+                <Label className="mb-2">
+                  Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
                   type="text"
                   value={character.name}
                   onChange={(e) => updateField('name', e.target.value)}
                   placeholder="Character Name"
-                  className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                             focus:border-purple-500 focus:outline-none transition-colors"
                 />
               </div>
+              <SRDSuggestionInput
+                type="classes"
+                value={character.class}
+                onChange={(value) => updateField('class', value)}
+                label="Class"
+                required
+                placeholder="Barbarian, Wizard, etc."
+              />
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Class <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={character.class}
-                  onChange={(e) => updateField('class', e.target.value)}
-                  placeholder="Barbarian, Wizard, etc."
-                  className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                             focus:border-purple-500 focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">Level</label>
-                <input
+                <Label className="mb-2">Level</Label>
+                <Input
                   type="number"
                   value={character.level}
                   onChange={(e) => updateField('level', parseInt(e.target.value) || 1)}
-                  min="1"
-                  max="20"
-                  className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                             focus:border-purple-500 focus:outline-none transition-colors"
+                  min={1}
+                  max={20}
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <SRDSuggestionInput
+                type="races"
+                value={character.race}
+                onChange={(value) => updateField('race', value)}
+                label="Race/Species"
+                required
+                placeholder="Human, Elf, Dwarf, etc."
+              />
+              <SRDSuggestionInput
+                type="backgrounds"
+                value={character.background}
+                onChange={(value) => updateField('background', value)}
+                label="Background"
+                placeholder="Soldier, Sage, etc."
+              />
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Race/Species <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={character.race}
-                  onChange={(e) => updateField('race', e.target.value)}
-                  placeholder="Human, Elf, Dwarf, etc."
-                  className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                             focus:border-purple-500 focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">Background</label>
-                <input
-                  type="text"
-                  value={character.background}
-                  onChange={(e) => updateField('background', e.target.value)}
-                  placeholder="Soldier, Sage, etc."
-                  className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                             focus:border-purple-500 focus:outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">Alignment</label>
-                <input
+                <Label className="mb-2">Alignment</Label>
+                <Input
                   type="text"
                   value={character.alignment}
                   onChange={(e) => updateField('alignment', e.target.value)}
                   placeholder="Lawful Good, etc."
-                  className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                             focus:border-purple-500 focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -165,17 +169,16 @@ export function ManualCharacterForm({
           <div className="space-y-4">
             {/* Ability Scores */}
             <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-3">Ability Scores</label>
+              <Label className="mb-3">Ability Scores</Label>
               <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
                 {(['str', 'dex', 'con', 'int', 'wis', 'cha'] as const).map((ability) => (
                   <div key={ability}>
-                    <label className="block text-xs text-gray-400 mb-1 uppercase">{ability}</label>
-                    <input
+                    <label className="block text-xs text-muted-foreground mb-1 uppercase">{ability}</label>
+                    <Input
                       type="number"
                       value={character[ability]}
                       onChange={(e) => updateField(ability, parseInt(e.target.value) || 10)}
-                      className="w-full px-2 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white text-center
-                                 focus:border-purple-500 focus:outline-none transition-colors"
+                      className="text-center"
                     />
                   </div>
                 ))}
@@ -185,43 +188,35 @@ export function ManualCharacterForm({
             {/* Combat Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">Current HP</label>
-                <input
+                <Label className="mb-2">Current HP</Label>
+                <Input
                   type="number"
                   value={character.currentHp}
                   onChange={(e) => updateField('currentHp', parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                             focus:border-purple-500 focus:outline-none transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">Max HP</label>
-                <input
+                <Label className="mb-2">Max HP</Label>
+                <Input
                   type="number"
                   value={character.maxHp}
                   onChange={(e) => updateField('maxHp', parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                             focus:border-purple-500 focus:outline-none transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">AC</label>
-                <input
+                <Label className="mb-2">AC</Label>
+                <Input
                   type="number"
                   value={character.ac}
                   onChange={(e) => updateField('ac', parseInt(e.target.value) || 10)}
-                  className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                             focus:border-purple-500 focus:outline-none transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">Initiative</label>
-                <input
+                <Label className="mb-2">Initiative</Label>
+                <Input
                   type="number"
                   value={character.initiative}
                   onChange={(e) => updateField('initiative', parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                             focus:border-purple-500 focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -253,13 +248,12 @@ export function ManualCharacterForm({
                 { key: 'survival', label: 'Survival' },
               ].map((skill) => (
                 <div key={skill.key}>
-                  <label className="block text-xs text-gray-400 mb-1">{skill.label}</label>
-                  <input
+                  <label className="block text-xs text-muted-foreground mb-1">{skill.label}</label>
+                  <Input
                     type="number"
                     value={character[skill.key as keyof ManualCharacterData] as number}
                     onChange={(e) => updateField(skill.key as keyof ManualCharacterData, parseInt(e.target.value) || 0)}
-                    className="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-white text-center
-                               focus:border-purple-500 focus:outline-none transition-colors text-sm"
+                    className="text-center text-sm py-1"
                   />
                 </div>
               ))}
@@ -279,13 +273,11 @@ export function ManualCharacterForm({
               { key: 'chaSave', label: 'Charisma' },
             ].map((save) => (
               <div key={save.key}>
-                <label className="block text-sm text-gray-400 mb-1">{save.label}</label>
-                <input
+                <label className="block text-sm text-muted-foreground mb-1">{save.label}</label>
+                <Input
                   type="number"
                   value={character[save.key as keyof ManualCharacterData] as number}
                   onChange={(e) => updateField(save.key as keyof ManualCharacterData, parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                             focus:border-purple-500 focus:outline-none transition-colors"
                 />
               </div>
             ))}
@@ -296,36 +288,36 @@ export function ManualCharacterForm({
         <AccordionItem title="Equipment & Features">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Languages</label>
-              <input
+              <Label className="mb-2">Languages</Label>
+              <Input
                 type="text"
                 value={character.languages}
                 onChange={(e) => updateField('languages', e.target.value)}
                 placeholder="Common, Elvish, etc."
-                className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                           focus:border-purple-500 focus:outline-none transition-colors"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Equipment</label>
+              <Label className="mb-2">Equipment</Label>
               <textarea
                 value={character.equipment}
                 onChange={(e) => updateField('equipment', e.target.value)}
                 placeholder="List equipment and items..."
                 rows={3}
-                className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                           focus:border-purple-500 focus:outline-none transition-colors"
+                className="w-full px-4 py-2.5 bg-muted border border-border rounded-lg
+                           focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20
+                           text-foreground font-ui resize-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">Features & Traits</label>
+              <Label className="mb-2">Features & Traits</Label>
               <textarea
                 value={character.features}
                 onChange={(e) => updateField('features', e.target.value)}
                 placeholder="List racial traits, class features, etc..."
                 rows={4}
-                className="w-full px-3 py-2 bg-gray-800 border-2 border-gray-700 rounded-lg text-white
-                           focus:border-purple-500 focus:outline-none transition-colors"
+                className="w-full px-4 py-2.5 bg-muted border border-border rounded-lg
+                           focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20
+                           text-foreground font-ui resize-none"
               />
             </div>
           </div>

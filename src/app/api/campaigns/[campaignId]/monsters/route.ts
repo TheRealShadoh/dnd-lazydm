@@ -12,6 +12,22 @@ function calculateModifier(score: number): string {
   return mod >= 0 ? `+${mod}` : `${mod}`
 }
 
+// Helper to format speed - handles both string and object formats
+function formatSpeed(speed: string | Record<string, number> | undefined): string {
+  if (!speed) return '30 ft.'
+  if (typeof speed === 'string') return speed
+
+  // Handle object format like {walk: 30, swim: 40, fly: 60}
+  const parts: string[] = []
+  if ('walk' in speed) parts.push(`${speed.walk} ft.`)
+  if ('swim' in speed) parts.push(`swim ${speed.swim} ft.`)
+  if ('fly' in speed) parts.push(`fly ${speed.fly} ft.`)
+  if ('burrow' in speed) parts.push(`burrow ${speed.burrow} ft.`)
+  if ('climb' in speed) parts.push(`climb ${speed.climb} ft.`)
+
+  return parts.length > 0 ? parts.join(', ') : '30 ft.'
+}
+
 // Generate MDX content from monster data
 function generateMonsterMDX(
   name: string,
@@ -220,7 +236,7 @@ export async function POST(
       undefined, // acType from SRD might not be available
       srdMonsterData.hp,
       undefined, // hitDice not in SRD model
-      srdMonsterData.speed,
+      formatSpeed(srdMonsterData.speed),
       srdMonsterData.abilities.strength,
       srdMonsterData.abilities.dexterity,
       srdMonsterData.abilities.constitution,

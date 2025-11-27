@@ -7,7 +7,12 @@
 
 import { useEffect, useState } from 'react';
 import { useSRDSync, useSRDData } from '@/lib/hooks/useSRDData';
-import { SRDSelector } from '@/components/srd/SRDSelector';
+import { MainNav } from '@/components/layout/MainNav';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Label } from '@/components/ui/Label';
+import { Loader2, RefreshCw, Database, BookOpen, CheckCircle, AlertTriangle } from 'lucide-react';
 import type { SRDDataType } from '@/lib/srd/models';
 
 type SyncStatus = {
@@ -67,179 +72,231 @@ export default function SRDAdminPage() {
 
   if (initializing) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold">SRD Reference Manager</h1>
-        <div className="bg-gray-800 p-4 rounded-lg">Loading SRD data...</div>
+      <div className="min-h-screen bg-background">
+        <MainNav />
+        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+            <p className="text-muted-foreground font-ui">Loading SRD data...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">SRD Reference Manager</h1>
-        <p className="text-gray-400">
-          Manage D&D 5e Systems Reference Document data
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <MainNav />
+      <main className="container max-w-6xl mx-auto py-8 px-4">
+        <PageHeader
+          title="SRD Reference Manager"
+          description="Manage D&D 5e Systems Reference Document data"
+          breadcrumbs={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Admin', href: '/admin' },
+            { label: 'SRD Manager' },
+          ]}
+        />
 
-      {/* Sync Status and Controls */}
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 space-y-4">
-        <h2 className="text-xl font-semibold">Sync Status</h2>
+        <div className="space-y-6 mt-8">
+          {/* Sync Status and Controls */}
+          <Card variant="fantasy">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 text-primary" />
+                Sync Status
+              </CardTitle>
+              <CardDescription>Monitor and control SRD data synchronization</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {syncStatus && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                    <Label className="text-muted-foreground">Last Sync</Label>
+                    <p className="text-foreground font-semibold mt-1">
+                      {syncStatus.ageHours < 1
+                        ? 'Just now'
+                        : `${syncStatus.ageHours} hours ago`}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {new Date(syncStatus.lastSyncDate).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                    <Label className="text-muted-foreground">Status</Label>
+                    <p className="font-semibold mt-1 flex items-center gap-2">
+                      {syncStatus.needsSync ? (
+                        <>
+                          <AlertTriangle className="h-4 w-4 text-warning" />
+                          <span className="text-warning">Update available</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 text-success" />
+                          <span className="text-success">Up to date</span>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              )}
 
-        {syncStatus && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-gray-400">Last Sync</label>
-              <p className="text-white">
-                {syncStatus.ageHours < 1
-                  ? 'Just now'
-                  : `${syncStatus.ageHours} hours ago`}
-              </p>
-              <p className="text-xs text-gray-500">
-                {new Date(syncStatus.lastSyncDate).toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <label className="text-sm text-gray-400">Status</label>
-              <p className="text-white">
-                {syncStatus.needsSync ? (
-                  <span className="text-yellow-400">Update available</span>
-                ) : (
-                  <span className="text-green-400">Up to date</span>
-                )}
-              </p>
-            </div>
-          </div>
-        )}
-
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => handleSync(false)}
-            disabled={syncing}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600
-                       text-white rounded-lg transition-colors"
-          >
-            {syncing ? 'Syncing...' : 'Sync Data'}
-          </button>
-          <button
-            onClick={() => handleSync(true)}
-            disabled={syncing}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600
-                       text-white rounded-lg transition-colors"
-          >
-            Force Sync
-          </button>
-        </div>
-
-        {syncError && (
-          <div className="bg-red-900 border border-red-700 rounded p-3 text-red-200 text-sm">
-            {syncError}
-          </div>
-        )}
-      </div>
-
-      {/* Data Summary */}
-      {syncStatus && (
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Data Summary</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {dataTypes.map((type) => (
-              <div key={type} className="bg-gray-700 rounded p-3">
-                <p className="text-sm text-gray-400 capitalize">{type}</p>
-                <p className="text-lg font-bold text-white">
-                  {syncStatus.counts[type]}
-                </p>
-                {syncStatus.customCounts[type] > 0 && (
-                  <p className="text-xs text-purple-400">
-                    + {syncStatus.customCounts[type]} custom
-                  </p>
-                )}
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant="primary"
+                  onClick={() => handleSync(false)}
+                  disabled={syncing}
+                >
+                  {syncing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Syncing...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Sync Data
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleSync(true)}
+                  disabled={syncing}
+                >
+                  Force Sync
+                </Button>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {/* Browse Data */}
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 space-y-4">
-        <h2 className="text-xl font-semibold">Browse Data</h2>
+              {syncError && (
+                <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm">
+                  {syncError}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-300 mb-2">
-            Data Type
-          </label>
-          <select
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value as SRDDataType)}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white
-                       focus:border-purple-500 focus:outline-none"
-          >
-            {dataTypes.map((type) => (
-              <option key={type} value={type}>
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {dataLoading && (
-          <div className="text-gray-400">Loading {selectedType}...</div>
-        )}
-
-        {results && (
-          <div>
-            <p className="text-sm text-gray-400 mb-3">
-              Total: {results.official.length + results.custom.length} (
-              {results.official.length} official, {results.custom.length}{' '}
-              custom)
-            </p>
-
-            {/* Official Entries */}
-            {results.official.length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-sm font-semibold text-gray-300 mb-2">
-                  Official ({results.official.length})
-                </h3>
-                <div className="max-h-48 overflow-y-auto space-y-1">
-                  {results.official.slice(0, 20).map((entry: any) => (
-                    <div
-                      key={entry.id}
-                      className="px-2 py-1 bg-gray-700 rounded text-sm text-gray-200"
-                    >
-                      {entry.name}
+          {/* Data Summary */}
+          {syncStatus && (
+            <Card variant="fantasy">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5 text-primary" />
+                  Data Summary
+                </CardTitle>
+                <CardDescription>Overview of available SRD content</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {dataTypes.map((type) => (
+                    <div key={type} className="p-4 bg-muted/50 rounded-lg border border-border">
+                      <p className="text-sm text-muted-foreground capitalize">{type}</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {syncStatus.counts[type]}
+                      </p>
+                      {syncStatus.customCounts[type] > 0 && (
+                        <p className="text-xs text-primary">
+                          + {syncStatus.customCounts[type]} custom
+                        </p>
+                      )}
                     </div>
                   ))}
-                  {results.official.length > 20 && (
-                    <div className="px-2 py-1 text-xs text-gray-500">
-                      ... and {results.official.length - 20} more
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Browse Data */}
+          <Card variant="fantasy">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-primary" />
+                Browse Data
+              </CardTitle>
+              <CardDescription>Explore and search SRD content</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="dataType">Data Type</Label>
+                <select
+                  id="dataType"
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value as SRDDataType)}
+                  className="w-full px-4 py-2.5 bg-muted border border-border rounded-lg
+                           focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20
+                           text-foreground font-ui"
+                >
+                  {dataTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {dataLoading && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading {selectedType}...
+                </div>
+              )}
+
+              {results && (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Total: {results.official.length + results.custom.length} (
+                    {results.official.length} official, {results.custom.length}{' '}
+                    custom)
+                  </p>
+
+                  {/* Official Entries */}
+                  {results.official.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-muted-foreground mb-2">
+                        Official ({results.official.length})
+                      </h3>
+                      <div className="max-h-48 overflow-y-auto space-y-1">
+                        {results.official.slice(0, 20).map((entry: any) => (
+                          <div
+                            key={entry.id}
+                            className="px-3 py-2 bg-muted/50 rounded-lg text-sm text-foreground border border-border"
+                          >
+                            {entry.name}
+                          </div>
+                        ))}
+                        {results.official.length > 20 && (
+                          <div className="px-3 py-2 text-xs text-muted-foreground">
+                            ... and {results.official.length - 20} more
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Custom Entries */}
+                  {results.custom.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-primary mb-2">
+                        Custom ({results.custom.length})
+                      </h3>
+                      <div className="max-h-48 overflow-y-auto space-y-1">
+                        {results.custom.map((entry: any) => (
+                          <div
+                            key={entry.id}
+                            className="px-3 py-2 bg-primary/10 rounded-lg text-sm text-foreground border border-primary/30"
+                          >
+                            {entry.name}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
-              </div>
-            )}
-
-            {/* Custom Entries */}
-            {results.custom.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-purple-400 mb-2">
-                  Custom ({results.custom.length})
-                </h3>
-                <div className="max-h-48 overflow-y-auto space-y-1">
-                  {results.custom.map((entry: any) => (
-                    <div
-                      key={entry.id}
-                      className="px-2 py-1 bg-purple-900 bg-opacity-30 rounded text-sm text-purple-200"
-                    >
-                      {entry.name}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </main>
     </div>
   );
 }

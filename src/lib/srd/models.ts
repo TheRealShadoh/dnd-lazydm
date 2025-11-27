@@ -9,7 +9,7 @@ export interface SRDMonster {
   source: 'official' | 'custom';
   ac: number;
   hp: number;
-  speed: string;
+  speed: string | Record<string, number>;
   abilities: {
     strength: number;
     dexterity: number;

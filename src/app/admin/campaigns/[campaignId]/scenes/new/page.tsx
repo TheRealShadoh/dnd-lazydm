@@ -4,7 +4,13 @@ import { useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { MarkdownEditor } from '@/components/editor/MarkdownEditor'
 import { useToast } from '@/hooks/useToast'
-import Link from 'next/link'
+import { MainNav } from '@/components/layout/MainNav'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Loader2, FileText, Lightbulb } from 'lucide-react'
 
 export default function NewScenePage() {
   const router = useRouter()
@@ -198,72 +204,70 @@ If players are stuck, provide these hints:
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link
-            href={`/admin/campaigns/${campaignId}`}
-            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            ← Back to Campaign
-          </Link>
-          <div>
-            <h1 className="text-4xl font-bold text-purple-400">Create New Scene</h1>
-            <p className="text-gray-400 mt-1">Campaign: {campaignId}</p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-background">
+      <MainNav />
+      <main className="container max-w-7xl mx-auto py-8 px-4">
+        <PageHeader
+          title="Create New Scene"
+          description={`Campaign: ${campaignId}`}
+          breadcrumbs={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Admin', href: '/admin' },
+            { label: 'Campaign', href: `/admin/campaigns/${campaignId}` },
+            { label: 'New Scene' },
+          ]}
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 mt-8">
           {/* Scene Information */}
-          <div className="bg-gray-900 rounded-xl border-2 border-gray-800 p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Scene Information</h2>
-
-            <div className="space-y-4">
+          <Card variant="fantasy">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Scene Information
+              </CardTitle>
+              <CardDescription>Basic details about your scene</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               {/* Scene Title */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Scene Title *
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="title">Scene Title *</Label>
+                <Input
+                  id="title"
                   type="text"
                   value={title}
                   onChange={(e) => handleTitleChange(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
                   placeholder="The Dark Forest"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Slug */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    URL Slug *
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="slug">URL Slug *</Label>
+                  <Input
+                    id="slug"
                     type="text"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                     required
                     pattern="[a-z0-9-]+"
-                    className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                             focus:border-purple-500 focus:outline-none text-white font-mono"
+                    className="font-mono"
                     placeholder="the-dark-forest"
                   />
                 </div>
 
                 {/* Scene Type */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Scene Type
-                  </label>
+                <div className="space-y-2">
+                  <Label htmlFor="sceneType">Scene Type</Label>
                   <select
+                    id="sceneType"
                     value={sceneType}
                     onChange={(e) => handleTemplateChange(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                             focus:border-purple-500 focus:outline-none text-white"
+                    className="w-full px-4 py-2.5 bg-muted border border-border rounded-lg
+                             focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20
+                             text-foreground font-ui"
                   >
                     <option value="roleplay">Roleplay</option>
                     <option value="combat">Combat</option>
@@ -272,52 +276,66 @@ If players are stuck, provide these hints:
                   </select>
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Scene Content Editor */}
-          <div className="bg-gray-900 rounded-xl border-2 border-gray-800 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-white">Scene Content</h2>
-              <div className="text-sm text-gray-400">
-                Supports Markdown, images, tables, and dice notation
+          <Card variant="fantasy">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <CardTitle>Scene Content</CardTitle>
+                <span className="text-sm text-muted-foreground">
+                  Supports Markdown, images, tables, and dice notation
+                </span>
               </div>
-            </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <MarkdownEditor value={content} onChange={setContent} height={600} />
 
-            <MarkdownEditor value={content} onChange={setContent} height={600} />
-
-            <div className="mt-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-              <h3 className="font-semibold text-purple-400 mb-2">💡 Tips</h3>
-              <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Use <code className="text-purple-300">&lt;DiceNotation value=&quot;1d20&quot; /&gt;</code> for clickable dice</li>
-                <li>• Use <code className="text-purple-300">&lt;ImageLightbox src=&quot;...&quot; /&gt;</code> for images with lightbox</li>
-                <li>• Reference monsters: <code className="text-purple-300">[Goblin](../reference/monsters#goblin)</code></li>
-                <li>• Add battle maps: <code className="text-purple-300">![Map](../img/map_name.jpg)</code></li>
-              </ul>
-            </div>
-          </div>
+              <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                <h3 className="font-semibold text-primary mb-2 flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4" />
+                  Tips
+                </h3>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Use <code className="text-primary bg-primary/10 px-1 rounded">&lt;DiceNotation value=&quot;1d20&quot; /&gt;</code> for clickable dice</li>
+                  <li>• Use <code className="text-primary bg-primary/10 px-1 rounded">&lt;ImageLightbox src=&quot;...&quot; /&gt;</code> for images with lightbox</li>
+                  <li>• Reference monsters: <code className="text-primary bg-primary/10 px-1 rounded">[Goblin](../reference/monsters#goblin)</code></li>
+                  <li>• Add battle maps: <code className="text-primary bg-primary/10 px-1 rounded">![Map](../img/map_name.jpg)</code></li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Submit Button */}
-          <div className="flex gap-4">
-            <button
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button
               type="submit"
+              variant="primary"
+              size="lg"
               disabled={loading || !title || !slug}
-              className="flex-1 px-6 py-4 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-700
-                       disabled:cursor-not-allowed rounded-lg font-semibold text-lg
-                       transition-colors duration-200"
+              className="flex-1"
             >
-              {loading ? 'Creating Scene...' : 'Create Scene'}
-            </button>
-            <Link
-              href={`/admin/campaigns/${campaignId}`}
-              className="px-6 py-4 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold text-lg
-                       transition-colors duration-200 text-center"
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Creating Scene...
+                </>
+              ) : (
+                'Create Scene'
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={() => router.push(`/admin/campaigns/${campaignId}`)}
             >
               Cancel
-            </Link>
+            </Button>
           </div>
         </form>
-      </div>
+      </main>
     </div>
   )
 }

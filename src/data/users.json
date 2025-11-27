@@ -7,6 +7,14 @@
       "name": "chris",
       "isAdmin": true,
       "createdAt": "2025-11-20T06:53:42.650Z"
+    },
+    {
+      "id": "user_16CrNq3xPZi5Fs4ZRH3hf",
+      "email": "test@gmail.com",
+      "passwordHash": "$2b$10$RM.eCF2Z4D.L9aVr.c5YcOCfRbqjE.GaLnX.JbqYSR5A/c6Kuov1e",
+      "name": "Tester ",
+      "createdAt": "2025-11-27T02:47:35.586Z",
+      "isAdmin": false
     }
   ]
 }

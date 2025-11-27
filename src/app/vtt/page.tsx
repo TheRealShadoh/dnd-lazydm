@@ -11,6 +11,11 @@ import { ShareControl } from '@/components/vtt/ShareControl'
 import { Token, GridSettings, VTTState } from '@/types/vtt'
 import { saveVTTState, loadVTTState, clearVTTState } from '@/lib/vtt-storage'
 import { useConfirm } from '@/hooks/useConfirm'
+import { MainNav } from '@/components/layout/MainNav'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Label } from '@/components/ui/Label'
+import { Loader2, Map, Trash2, RotateCcw, X, ZoomIn, Lightbulb } from 'lucide-react'
 
 function VTTContent() {
   const searchParams = useSearchParams()
@@ -121,43 +126,46 @@ function VTTContent() {
 
   if (!mapImageUrl) {
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-red-400 mb-4">No Map Selected</h1>
-          <p className="text-gray-400">Please select a map image to use the VTT.</p>
+      <div className="min-h-screen bg-background">
+        <MainNav />
+        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+          <Card variant="fantasy" className="max-w-md text-center">
+            <CardContent className="pt-6">
+              <div className="w-16 h-16 mb-4 mx-auto rounded-full bg-destructive/20 flex items-center justify-center">
+                <Map className="w-8 h-8 text-destructive" />
+              </div>
+              <h1 className="text-2xl font-bold font-display text-foreground mb-2">No Map Selected</h1>
+              <p className="text-muted-foreground">Please select a map image to use the VTT.</p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-4">
-      <div className="max-w-[2000px] mx-auto">
+    <div className="min-h-screen bg-background">
+      <MainNav />
+      <main className="max-w-[2000px] mx-auto p-4">
         {/* Header */}
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-purple-400">Virtual Tabletop</h1>
-            <p className="text-sm text-gray-400 mt-1">D&D 5e - Lightweight VTT</p>
+            <h1 className="text-3xl font-bold font-display text-primary">Virtual Tabletop</h1>
+            <p className="text-sm text-muted-foreground mt-1">D&D 5e - Lightweight VTT</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={handleClearAll}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition"
-            >
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="destructive" onClick={handleClearAll}>
+              <Trash2 className="h-4 w-4 mr-2" />
               Clear All Tokens
-            </button>
-            <button
-              onClick={handleResetVTT}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition"
-            >
+            </Button>
+            <Button variant="outline" onClick={handleResetVTT}>
+              <RotateCcw className="h-4 w-4 mr-2" />
               Reset VTT
-            </button>
-            <button
-              onClick={() => window.close()}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded transition"
-            >
+            </Button>
+            <Button variant="primary" onClick={() => window.close()}>
+              <X className="h-4 w-4 mr-2" />
               Close
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -165,7 +173,7 @@ function VTTContent() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-4">
           {/* Canvas Area */}
           <div className="flex flex-col">
-            <div className="overflow-auto border border-gray-700 rounded-lg bg-gray-900 p-4">
+            <div className="overflow-auto border border-border rounded-lg bg-card p-4">
               <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
                 <VTTCanvas
                   mapImageUrl={mapImageUrl}
@@ -181,22 +189,28 @@ function VTTContent() {
               </div>
             </div>
 
-            {/* Instructions */}
-            <div className="mt-4 p-4 bg-gray-900 border border-gray-700 rounded-lg lg:hidden">
-              <h3 className="font-semibold text-purple-300 mb-2">Instructions</h3>
-              <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Click and drag tokens to move them on the map</li>
-                <li>• Click on a token to select it (gold border)</li>
-                <li>• Use the controls on the right to create and manage tokens</li>
-                <li>• Enable &quot;Snap to Grid&quot; for precise token placement</li>
-                <li>• All changes are automatically saved to your browser</li>
-              </ul>
-            </div>
+            {/* Instructions - Mobile only */}
+            <Card variant="fantasy" className="mt-4 lg:hidden">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Lightbulb className="h-5 w-5 text-primary" />
+                  Instructions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Click and drag tokens to move them on the map</li>
+                  <li>• Click on a token to select it (gold border)</li>
+                  <li>• Use the controls on the right to create and manage tokens</li>
+                  <li>• Enable &quot;Snap to Grid&quot; for precise token placement</li>
+                  <li>• All changes are automatically saved to your browser</li>
+                </ul>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Controls Sidebar - Fixed height with internal scrolling */}
-          <div className="space-y-4 max-h-[calc(100vh-140px)] overflow-y-auto sticky top-4 pr-2
-                          scrollbar-thin scrollbar-thumb-purple-500 scrollbar-track-gray-800">
+          <div className="space-y-4 max-h-[calc(100vh-140px)] overflow-y-auto sticky top-4 pr-2">
             <InitiativeTracker
               tokens={tokens}
               onUpdateToken={handleUpdateToken}
@@ -210,56 +224,69 @@ function VTTContent() {
             )}
 
             {/* Zoom Controls */}
-            <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 space-y-4">
-              <h3 className="text-xl font-bold text-purple-400 mb-4">Zoom / Scale</h3>
-
-              <div>
-                <label htmlFor="scale" className="block text-sm text-gray-300 mb-2">
-                  Scale: {Math.round(scale * 100)}%
-                </label>
-                <input
-                  type="range"
-                  id="scale"
-                  min="0.25"
-                  max="2"
-                  step="0.05"
-                  value={scale}
-                  onChange={(e) => setScale(parseFloat(e.target.value))}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>25%</span>
-                  <span>200%</span>
+            <Card variant="fantasy">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ZoomIn className="h-5 w-5 text-primary" />
+                  Zoom / Scale
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="scale">
+                    Scale: {Math.round(scale * 100)}%
+                  </Label>
+                  <input
+                    type="range"
+                    id="scale"
+                    min="0.25"
+                    max="2"
+                    step="0.05"
+                    value={scale}
+                    onChange={(e) => setScale(parseFloat(e.target.value))}
+                    className="w-full accent-primary"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>25%</span>
+                    <span>200%</span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setScale(0.5)}
-                  className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded text-sm transition"
-                >
-                  50%
-                </button>
-                <button
-                  onClick={() => setScale(1)}
-                  className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded text-sm transition"
-                >
-                  100%
-                </button>
-                <button
-                  onClick={() => setScale(1.5)}
-                  className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded text-sm transition"
-                >
-                  150%
-                </button>
-              </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setScale(0.5)}
+                  >
+                    50%
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setScale(1)}
+                  >
+                    100%
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setScale(1.5)}
+                  >
+                    150%
+                  </Button>
+                </div>
 
-              <div className="pt-3 border-t border-gray-700">
-                <p className="text-xs text-gray-500">
-                  💡 Tip: Use zoom to make the map larger or smaller without changing token positions.
-                </p>
-              </div>
-            </div>
+                <div className="pt-3 border-t border-border">
+                  <p className="text-xs text-muted-foreground flex items-start gap-1">
+                    <Lightbulb className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    Use zoom to make the map larger or smaller without changing token positions.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
             <TokenControls
               tokens={tokens}
@@ -279,7 +306,7 @@ function VTTContent() {
             />
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
@@ -287,10 +314,10 @@ function VTTContent() {
 export default function VTTPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading VTT...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground font-ui">Loading VTT...</p>
         </div>
       </div>
     }>

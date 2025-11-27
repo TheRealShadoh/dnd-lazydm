@@ -26,7 +26,7 @@ const navItems: NavItem[] = [
     icon: <Map className="h-4 w-4" />,
   },
   {
-    href: '/admin/srd',
+    href: '/srd',
     label: 'SRD Reference',
     icon: <BookOpen className="h-4 w-4" />,
   },
