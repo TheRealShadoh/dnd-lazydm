@@ -1,0 +1,19 @@
+{
+  "name": "The Cursed Village of Hollowbrook",
+  "slug": "the-cursed-village-of-hollowbrook",
+  "description": "A village shrouded in mist and dread, where children vanish and shadows whisper secrets.",
+  "level": "1",
+  "players": "4-5",
+  "duration": "1",
+  "genre": "Fantasy Adventure",
+  "theme": {
+    "primary": "#ab47bc",
+    "secondary": "#7b1fa2"
+  },
+  "createdAt": "2025-11-27T08:42:37.987Z",
+  "access": {
+    "ownerId": "user_2b0PbIRrUhN2_CSiLV1X2",
+    "dmIds": [],
+    "playerAssignments": []
+  }
+}
