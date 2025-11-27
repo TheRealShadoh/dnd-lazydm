@@ -109,16 +109,19 @@ export const GeneratedNPCSchema = z.object({
   personality: z.string().optional(),
   motivation: z.string().optional(),
   appearance: z.string().optional(),
-  quirks: z.array(z.string()).optional(),
-  secrets: z.array(z.string()).optional(),
-  relationships: z.array(z.object({
-    name: z.string(),
-    relationship: z.string(),
-  })).optional(),
+  quirks: z.union([z.array(z.string()), z.record(z.string(), z.string())]).optional(),
+  secrets: z.union([z.array(z.string()), z.record(z.string(), z.string())]).optional(),
+  relationships: z.union([
+    z.array(z.object({
+      name: z.string(),
+      relationship: z.string(),
+    })),
+    z.record(z.string(), z.string()),
+  ]).optional(),
   abilities: AbilitiesSchema.optional(),
-  skills: z.array(z.string()).optional(),
-  equipment: z.array(z.string()).optional(),
-  spells: z.array(z.string()).optional(),
+  skills: SkillsSchema,
+  equipment: z.union([z.array(z.string()), z.record(z.string(), z.union([z.string(), z.number()]))]).optional(),
+  spells: z.union([z.array(z.string()), z.record(z.string(), z.string())]).optional(),
   imagePrompt: z.string().optional(),
 });
 
@@ -134,16 +137,30 @@ export const EncounterMonsterSchema = z.object({
 });
 
 /**
+ * Flexible string array schema - handles array or object format
+ */
+const FlexibleStringArraySchema = z.union([
+  z.array(z.string()),
+  z.record(z.string(), z.union([z.string(), z.number()])),
+]).optional();
+
+/**
  * Generated Encounter schema
  */
 export const GeneratedEncounterSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
-  difficulty: z.enum(['trivial', 'easy', 'medium', 'hard', 'deadly']),
-  monsters: z.array(EncounterMonsterSchema),
+  difficulty: z.union([
+    z.enum(['trivial', 'easy', 'medium', 'hard', 'deadly']),
+    z.string(), // Allow any string in case AI returns something different
+  ]),
+  monsters: z.union([
+    z.array(EncounterMonsterSchema),
+    z.record(z.string(), z.union([z.number(), z.string()])), // { "Goblin": 3 }
+  ]),
   tactics: z.string().optional(),
   environment: z.string().optional(),
-  rewards: z.array(z.string()).optional(),
+  rewards: FlexibleStringArraySchema,
   xpTotal: z.number().optional(),
 });
 
@@ -156,19 +173,29 @@ export const GeneratedSceneSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
   readAloud: z.string().optional(),
-  objectives: z.array(z.string()).optional(),
-  encounters: z.array(GeneratedEncounterSchema).optional(),
-  npcs: z.array(z.object({
-    name: z.string(),
-    role: z.string(),
-    notes: z.string().optional(),
-  })).optional(),
-  treasures: z.array(z.string()).optional(),
-  secrets: z.array(z.string()).optional(),
-  transitions: z.object({
-    next: z.union([z.array(z.string()), z.string()]).optional(),
-    previous: z.union([z.array(z.string()), z.string()]).optional(),
-  }).optional(),
+  objectives: FlexibleStringArraySchema,
+  encounters: z.union([
+    z.array(GeneratedEncounterSchema),
+    z.record(z.string(), z.any()), // Flexible for object format
+  ]).optional(),
+  npcs: z.union([
+    z.array(z.object({
+      name: z.string(),
+      role: z.string(),
+      notes: z.string().optional(),
+    })),
+    z.record(z.string(), z.union([z.string(), z.object({ role: z.string().optional(), notes: z.string().optional() })])),
+  ]).optional(),
+  treasures: FlexibleStringArraySchema,
+  secrets: FlexibleStringArraySchema,
+  transitions: z.union([
+    z.object({
+      next: z.union([z.array(z.string()), z.string()]).optional(),
+      previous: z.union([z.array(z.string()), z.string()]).optional(),
+    }),
+    z.string(), // Allow simple string
+    z.array(z.string()), // Allow array
+  ]).optional(),
   imagePrompt: z.string().optional(),
 });
 
@@ -182,15 +209,24 @@ export const GeneratedCampaignSchema = z.object({
   description: z.string().min(1),
   synopsis: z.string().optional(),
   genre: z.string().optional(),
-  level: z.string().optional(), // e.g., "1-5" or "5"
-  players: z.string().optional(), // e.g., "4-6"
+  level: z.union([z.string(), z.number()]).optional(), // e.g., "1-5" or 5
+  players: z.union([z.string(), z.number()]).optional(), // e.g., "4-6" or 4
   duration: z.string().optional(), // e.g., "3-5 sessions"
-  plotHooks: z.array(z.string()).optional(),
-  majorNPCs: z.array(GeneratedNPCSchema).optional(),
-  scenes: z.array(GeneratedSceneSchema).optional(),
-  customMonsters: z.array(GeneratedMonsterSchema).optional(),
-  themes: z.array(z.string()).optional(),
-  warnings: z.array(z.string()).optional(), // Content warnings
+  plotHooks: FlexibleStringArraySchema,
+  majorNPCs: z.union([
+    z.array(GeneratedNPCSchema),
+    z.record(z.string(), z.any()), // Flexible for object format
+  ]).optional(),
+  scenes: z.union([
+    z.array(GeneratedSceneSchema),
+    z.record(z.string(), z.any()), // Flexible for object format
+  ]).optional(),
+  customMonsters: z.union([
+    z.array(GeneratedMonsterSchema),
+    z.record(z.string(), z.any()), // Flexible for object format
+  ]).optional(),
+  themes: FlexibleStringArraySchema,
+  warnings: FlexibleStringArraySchema, // Content warnings
   imagePrompt: z.string().optional(),
 });
 
