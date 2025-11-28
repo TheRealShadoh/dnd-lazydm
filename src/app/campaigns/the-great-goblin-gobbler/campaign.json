@@ -1,0 +1,156 @@
+{
+  "name": "The Great Goblin Gobbler",
+  "slug": "the-great-goblin-gobbler",
+  "description": "A Thanksgiving feast gone awry as a gang of goblins steal all the turkeys and a legendary monster hides in the forest!",
+  "synopsis": "The small village of Harvest's End is in a panic. The annual Thanksgiving feast is ruined when a gang of goblins steals all their prized turkeys. Worse yet, a terrifying monster has been stalking the forest, and the goblins seem to be working for it. The party is hired to retrieve the stolen turkeys, put an end to the goblins, and uncover the mystery of the forest beast. Along the way, they'll encounter strange goblin inventions, a chatty forest spirit, and a very hungry troll with a taste for poultry. This one-shot combines lighthearted humor with exciting combat and creative problem-solving.",
+  "level": "5",
+  "players": "4-5",
+  "duration": "1",
+  "genre": "Fantasy Adventure",
+  "theme": {
+    "primary": "#ab47bc",
+    "secondary": "#7b1fa2"
+  },
+  "plotHooks": [
+    "A villager hires you to retrieve the stolen turkeys before the feast is ruined",
+    "The mayor offers a reward for uncovering the source of the goblin attacks",
+    "The local priestess asks you to drive away the evil in the forest",
+    "A goblin scout (captured by villagers) offers to lead you to the stolen turkeys if you spare his life"
+  ],
+  "scenes": [
+    {
+      "name": "The Stolen Feast",
+      "slug": "the-stolen-feast",
+      "description": "The party arrives in Harvest's End to find the village in chaos. Turkeys are missing, the feast is ruined, and goblins are to blame. The mayor and villagers beg for help."
+    },
+    {
+      "name": "The Goblin Trail",
+      "slug": "the-goblin-trail",
+      "description": "The party follows the goblin tracks into the forest, encountering strange traps and devices along the way."
+    },
+    {
+      "name": "The Goblin Camp",
+      "slug": "the-goblin-camp",
+      "description": "The party finds the goblin camp and discovers that the goblins are working for a mysterious beast. The stolen turkeys are here, but so is trouble."
+    },
+    {
+      "name": "The Forest Beast",
+      "slug": "the-forest-beast",
+      "description": "The party follows the clues to confront the mysterious beast that the goblins were working for - a massive, turkey-obsessed troll!"
+    },
+    {
+      "name": "The Feast Restored",
+      "slug": "the-feast-restored",
+      "description": "The party returns to Harvest's End with the turkeys and the news of the defeated troll. The village celebrates with a grand feast."
+    }
+  ],
+  "majorNPCs": [
+    {
+      "name": "Mayor Thaddeus Brannon",
+      "race": "Human",
+      "class": "Noble",
+      "background": "The vain but well-meaning mayor of Harvest's End",
+      "alignment": "Lawful Neutral",
+      "personality": "A bit pompous but genuinely cares about the village's well-being. Constantly adjusting his fancy hat.",
+      "motivation": "To restore order and save the feasting traditions of the village",
+      "appearance": "A stout man with a round red face, always wearing an overly large mayoral hat",
+      "quirks": [
+        "Adjusts his hat at least once every minute",
+        "Talks loudly to be heard in crowds"
+      ],
+      "secrets": [
+        "He secretly eats the leftovers from the feast each year",
+        "He's terrified of the forest"
+      ],
+      "imagePrompt": "A stout man in a fancy hat with a proud but slightly nervous expression"
+    },
+    {
+      "name": "Priestess Elara Moonwhisper",
+      "race": "Elf",
+      "class": "Druid",
+      "background": "The spiritual guide of Harvest's End who senses evil in the forest",
+      "alignment": "Neutral Good",
+      "personality": "Calm and wise, with a dry sense of humor. Speaks in riddles when nervous",
+      "motivation": "To protect the natural balance and uncover the source of corruption",
+      "appearance": "A tall, slender elf with silver hair and eyes like autumn leaves",
+      "quirks": [
+        "Talks to squirrels",
+        "Carries acorns everywhere",
+        "Sneezes when lying"
+      ],
+      "secrets": [
+        "She once had a brief romantic involvement with the village blacksmith",
+        "She foresees a great feast in the party's future"
+      ],
+      "imagePrompt": "An elegant elf wearing leaf-patterned robes, surrounded by small woodland creatures"
+    },
+    {
+      "name": "Goblin Chief Rizzik",
+      "race": "Goblin",
+      "class": "Goblin Boss",
+      "background": "The cunning leader of the goblin band, working for the mysterious beast",
+      "alignment": "Chaotic Evil",
+      "personality": "Sneaky and whiny, but fiercely loyal to his own kind. Loves shiny things and money.",
+      "motivation": "To steal as much as possible and make his goblins rich, even if it means working for a monster",
+      "appearance": "A dirty, gangly goblin with a tattered hat and a belt full of stolen trinkets",
+      "quirks": [
+        "Blows a loud raspberry when surprised",
+        "Says 'uh-uh!' when he thinks he's outsmarted someone"
+      ],
+      "secrets": [
+        "He's terrified of the beast he's serving",
+        "He has a hidden hoard of stolen turkeys"
+      ],
+      "imagePrompt": "A grinning goblin surrounded by stolen loot, with a nervous look in his eyes"
+    },
+    {
+      "name": "Old Man Jenkins",
+      "race": "Human",
+      "class": "Farmer",
+      "background": "The village's grumpiest resident who raised all the stolen turkeys",
+      "alignment": "Neutral",
+      "personality": "Cranky and sarcastic, but deep down cares about his animals. Has a soft spot for adventurers.",
+      "motivation": "To get his turkeys back and protect his flock from harm",
+      "appearance": "A wiry old man with a permanent scowl and a tattered hat",
+      "quirks": [
+        "Calls everyone 'kid'",
+        "Mumbles to his chickens",
+        "Always carries a pitchfork"
+      ],
+      "secrets": [
+        "He had a pet turkey that helped him through hard times",
+        "He knows more about the forest than he lets on"
+      ],
+      "imagePrompt": "A grumpy old man leaning on a pitchfork, surrounded by turkeys"
+    },
+    {
+      "name": "Twitchy Tim",
+      "race": "Goblin",
+      "class": "Goblin Scout",
+      "background": "A captured goblin who offers to lead the party to the turkeys for his freedom",
+      "alignment": "Chaotic Neutral",
+      "personality": "Nervous, twitchy, and prone to random outbursts. Easily startled and distractable.",
+      "motivation": "To survive and get back to his goblin kin, even if it means working with adventurers",
+      "appearance": "A scrawny goblin with bulging eyes and twitchy fingers, wearing mismatched armor",
+      "quirks": [
+        "Jumps at loud noises",
+        "Starts every sentence with 'uh...'",
+        "Talks to himself"
+      ],
+      "secrets": [
+        "He's actually a pretty good cook",
+        "He once had a human friend",
+        "He's allergic to feathers"
+      ],
+      "imagePrompt": "A twitchy goblin with wide eyes, holding a crude map and looking around nervously"
+    }
+  ],
+  "createdAt": "2025-11-28T05:37:43.425Z",
+  "access": {
+    "ownerId": "user_2b0PbIRrUhN2_CSiLV1X2",
+    "dmIds": [
+      "user_16CrNq3xPZi5Fs4ZRH3hf"
+    ],
+    "playerAssignments": []
+  }
+}

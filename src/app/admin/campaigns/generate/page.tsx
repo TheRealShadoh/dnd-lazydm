@@ -21,6 +21,7 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
+  Zap,
 } from 'lucide-react'
 
 interface GeneratedCampaign {
@@ -93,10 +94,49 @@ export default function GenerateCampaignPage() {
 
   // UI state
   const [generating, setGenerating] = useState(false)
+  const [enhancing, setEnhancing] = useState(false)
   const [generatedCampaign, setGeneratedCampaign] = useState<GeneratedCampaign | null>(null)
   const [creating, setCreating] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleEnhancePrompt = async () => {
+    if (!concept.trim()) {
+      toast.warning('Please enter a concept to enhance')
+      return
+    }
+
+    setEnhancing(true)
+    setError(null)
+
+    try {
+      const res = await fetch('/api/ai/enhance-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: concept.trim(),
+          type: 'campaign',
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to enhance prompt')
+      }
+
+      if (data.success && data.enhanced) {
+        setConcept(data.enhanced)
+        toast.success('Prompt enhanced!')
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to enhance prompt'
+      setError(message)
+      toast.error(message)
+    } finally {
+      setEnhancing(false)
+    }
+  }
 
   const handleGenerate = async () => {
     if (!concept.trim()) {
@@ -224,14 +264,37 @@ export default function GenerateCampaignPage() {
             <CardContent className="space-y-6">
               {/* Main Concept */}
               <div className="space-y-2">
-                <Label htmlFor="concept">Campaign Concept *</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="concept">Campaign Concept *</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEnhancePrompt}
+                    disabled={enhancing || generating || !concept.trim()}
+                    className="text-xs h-7 px-2"
+                  >
+                    {enhancing ? (
+                      <>
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Enhancing...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="h-3 w-3 mr-1" />
+                        Enhance Prompt
+                      </>
+                    )}
+                  </Button>
+                </div>
                 <textarea
                   id="concept"
                   value={concept}
                   onChange={(e) => setConcept(e.target.value)}
                   rows={4}
+                  disabled={generating || enhancing}
                   className="w-full px-4 py-3 bg-muted border border-border rounded-lg
-                           text-foreground resize-y
+                           text-foreground resize-y disabled:opacity-50
                            focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
                   placeholder="A group of adventurers must infiltrate a vampire's ball to rescue a kidnapped noble, but they soon discover the noble doesn't want to be rescued..."
                 />

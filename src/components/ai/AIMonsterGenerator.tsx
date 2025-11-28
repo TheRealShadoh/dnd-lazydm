@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
-import { Sparkles, Loader2, AlertCircle, Wand2 } from 'lucide-react'
+import { Sparkles, Loader2, AlertCircle, Wand2, Zap } from 'lucide-react'
 
 export interface GeneratedMonsterData {
   name: string
@@ -55,7 +55,43 @@ export function AIMonsterGenerator({ onGenerated, campaignId }: AIMonsterGenerat
   const [size, setSize] = useState('')
 
   const [generating, setGenerating] = useState(false)
+  const [enhancing, setEnhancing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleEnhancePrompt = async () => {
+    if (!concept.trim()) {
+      setError('Please enter a concept to enhance')
+      return
+    }
+
+    setEnhancing(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/ai/enhance-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: concept.trim(),
+          type: 'monster',
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to enhance prompt')
+      }
+
+      if (data.success && data.enhanced) {
+        setConcept(data.enhanced)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to enhance prompt')
+    } finally {
+      setEnhancing(false)
+    }
+  }
 
   const handleGenerate = async () => {
     if (!concept.trim()) {
@@ -114,14 +150,36 @@ export function AIMonsterGenerator({ onGenerated, campaignId }: AIMonsterGenerat
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="concept">Monster Concept *</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="concept">Monster Concept *</Label>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleEnhancePrompt}
+              disabled={enhancing || generating || !concept.trim()}
+              className="text-xs h-7 px-2"
+            >
+              {enhancing ? (
+                <>
+                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  Enhancing...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-3 w-3 mr-1" />
+                  Enhance Prompt
+                </>
+              )}
+            </Button>
+          </div>
           <Textarea
             id="concept"
             value={concept}
             onChange={(e) => setConcept(e.target.value)}
             placeholder="e.g., A corrupted tree guardian that protects an ancient forest, using root attacks and poison spores"
             rows={3}
-            disabled={generating}
+            disabled={generating || enhancing}
           />
         </div>
 

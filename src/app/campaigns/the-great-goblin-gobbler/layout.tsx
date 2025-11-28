@@ -4,11 +4,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const navigation = [
-  { title: 'Campaign Home', href: '/campaigns/the-cursed-village-of-hollowbrook' },
-  { title: 'Characters', href: '/campaigns/the-cursed-village-of-hollowbrook/characters' },
-  { title: 'Scenes', href: '/campaigns/the-cursed-village-of-hollowbrook/scenes' },
-  { title: 'Monsters', href: '/campaigns/the-cursed-village-of-hollowbrook/reference/monsters' },
-  { title: 'Reference', href: '/campaigns/the-cursed-village-of-hollowbrook/reference' },
+  { title: 'Campaign Home', href: '/campaigns/the-great-goblin-gobbler' },
+  { title: 'Characters', href: '/campaigns/the-great-goblin-gobbler/characters' },
+  { title: 'Scenes', href: '/campaigns/the-great-goblin-gobbler/scenes' },
+  { title: 'Monsters', href: '/campaigns/the-great-goblin-gobbler/reference/monsters' },
+  { title: 'Reference', href: '/campaigns/the-great-goblin-gobbler/reference' },
 ]
 
 export default function CampaignLayout({
@@ -24,7 +24,7 @@ export default function CampaignLayout({
       <aside className="w-64 border-r border-gray-800 sticky top-0 h-screen overflow-y-auto bg-gray-900/50">
         <div className="p-6" style={{ borderLeftColor: '#ab47bc' }}>
           <h2 className="text-xl font-bold mb-4" style={{ color: '#ab47bc' }}>
-            The Cursed Village of Hollowbrook
+            The Great Goblin Gobbler
           </h2>
           <nav className="space-y-1">
             {navigation.map((item) => {
