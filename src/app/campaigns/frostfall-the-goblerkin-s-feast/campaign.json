@@ -1,0 +1,138 @@
+{
+  "name": "Frostfall: The Goblerkin's Feast",
+  "slug": "frostfall-the-goblerkin-s-feast",
+  "description": "A band of adventurers must navigate a treacherous frosted forest and unravel the mysteries of the goblerkin before a blizzard traps them forever.",
+  "synopsis": "Deep in the heart of the frostbitten forest of Glacialveil, the players stumble upon a peculiar settlement where a secretive clan of turkey-people, the Goblerkin, have built a fortified hut from stolen armor and enchanted feathers. The players must navigate treacherous terrain, battle frost giants and magical turkey-men, and uncover the truth behind the disappearances of local hunters. Along the way, they'll deal with the Goblerkin's unpredictable hospitality and the looming threat of a blizzard that could trap them forever. The campaign culminates in a desperate battle against the Goblerkin's matriarch, who seeks to expand her domain and ensnare the party in her eternal feast.",
+  "level": "1-5",
+  "players": "4-5",
+  "duration": "3-5 sessions",
+  "genre": "Fantasy Adventure",
+  "theme": {
+    "primary": "#ab47bc",
+    "secondary": "#7b1fa2"
+  },
+  "plotHooks": [
+    "Local hunters have gone missing in the Glacialveil forest, and the PCs are hired to investigate.",
+    "A mysterious blizzard is approaching, and the PCs must seek shelter in the Goblerkin's hut.",
+    "A wealthy patron offers a reward for the return of stolen armor and artifacts from the Goblerkin.",
+    "The PCs discover a map leading to a hidden treasure trove within the Goblerkin's fortress.",
+    "A prophecy foretells of a great feast that will either save or doom the northern lands."
+  ],
+  "scenes": [
+    {
+      "name": "The Frozen Forest",
+      "slug": "the-frozen-forest",
+      "description": "The party enters the Glacialveil forest, a treacherous landscape of ice and snow. They must navigate the harsh environment and avoid the dangers lurking within."
+    },
+    {
+      "name": "The Goblerkin's Hut",
+      "slug": "the-goblerkin-s-hut",
+      "description": "The party arrives at the Goblerkin's fortified hut, a bizarre structure made of stolen armor and enchanted feathers. They must navigate the complex social dynamics of the Goblerkin and uncover the truth behind the disappearances."
+    },
+    {
+      "name": "The Frozen Lake",
+      "slug": "the-frozen-lake",
+      "description": "The party must cross a treacherous frozen lake to escape the Goblerkin or reach Gorm the Frost Giant's lair. The lake is home to ice wyrms and other dangers."
+    },
+    {
+      "name": "The Escape",
+      "slug": "the-escape",
+      "description": "The party must escape the Glacialveil forest before the blizzard traps them forever. They must navigate the treacherous terrain and avoid the dangers that stalk the forest."
+    },
+    {
+      "name": "The Aftermath",
+      "slug": "the-aftermath",
+      "description": "The party returns to civilization, where they must deal with the consequences of their actions and the truth behind the disappearances."
+    }
+  ],
+  "majorNPCs": [
+    {
+      "name": "Magda the Matriarch",
+      "race": "Goblerkin",
+      "class": "Druid (Circle of Spores)",
+      "background": "Formerly a revered healer, Magda was cast out for her unorthodox methods and now leads the Goblerkin with a mix of benevolence and malice.",
+      "alignment": "Neutral Evil",
+      "personality": "Charismatic but manipulative, Magda speaks in riddles and offers cryptic advice, always with a smile that doesn't reach her eyes.",
+      "motivation": "To create an everlasting feast where all are welcome, whether as guests or as the main course.",
+      "appearance": "A towering figure with feathery wings, a beak-like nose, and a cloak made of stolen fur. Her eyes glow with an unnatural light.",
+      "quirks": [
+        "Always carries a silver goblet filled with a mysterious liquid.",
+        "Humming an old lullaby when plotting her next move.",
+        "Feigning ignorance when confronted with her dark deeds."
+      ],
+      "secrets": [
+        "She is not a true Goblerkin but a shapeshifted fey entity.",
+        "The disappearances of hunters are part of her plan to expand her feast.",
+        "She is slowly succumbing to a curse that will turn her into a mindless turkey-beast."
+      ],
+      "imagePrompt": "A regal yet eerie turkey-woman with a glowing gaze, adorned in stolen furs and feathers, holding a silver goblet."
+    },
+    {
+      "name": "Barnaby the Betrayer",
+      "race": "Human",
+      "class": "Rogue",
+      "background": "A former hunter who turned to theft and deception to survive the harsh winters.",
+      "alignment": "Chaotic Neutral",
+      "personality": "Sarcastic and self-serving, Barnaby has a soft spot for the underdog but will betray anyone for the right price.",
+      "motivation": "To amass enough wealth to escape the Glacialveil forest forever.",
+      "appearance": "A wiry man with a scar across his face, dressed in patchwork armor and a tattered cloak.",
+      "quirks": [
+        "Always counts his coins before making a deal.",
+        "Has a habit of pretending to be injured to gain sympathy.",
+        "Carries a lucky rabbit's foot that he insists is magic."
+      ],
+      "secrets": [
+        "He was the one who tipped off the Goblerkin about the missing hunters.",
+        "He knows the location of a hidden treasure trove but refuses to share it.",
+        "He is secretly in love with a Goblerkin named Clucklow."
+      ],
+      "imagePrompt": "A wiry, scarred man in patchwork armor, eyeing a pile of coins with a sly grin."
+    },
+    {
+      "name": "Clucklow the Cautious",
+      "race": "Goblerkin",
+      "class": "Ranger",
+      "background": "A young Goblerkin who questions the traditions of her people and seeks a better way.",
+      "alignment": "Neutral Good",
+      "personality": "Kind-hearted but timid, Clucklow is torn between her loyalty to her clan and her desire to protect the outsiders.",
+      "motivation": "To find a way to end the cycle of violence and hunger that plagues her people.",
+      "appearance": "A petite Goblerkin with downy feathers and large, expressive eyes. She wears a cloak made of woven leaves.",
+      "quirks": [
+        "Constantly fidgets with her feathers when nervous.",
+        "Offers food to any creature she meets, even insects.",
+        "Whispers apologies to the animals she hunts."
+      ],
+      "secrets": [
+        "She knows the truth about the disappearances but is afraid to speak up.",
+        "She has been secretly meeting with Barnaby, hoping to broker peace.",
+        "She possesses a ancient artifact that could break Magda's curse."
+      ],
+      "imagePrompt": "A small, downy-feathered Goblerkin with large, worried eyes, clutching a woven leaf cloak."
+    },
+    {
+      "name": "Gorm the Frost Giant",
+      "race": "Frost Giant",
+      "alignment": "Lawful Evil",
+      "personality": "Arrogant and brutish, Gorm sees the Goblerkin as pests and the PCs as potential sacrifices to the winter gods.",
+      "motivation": "To claim the Glacialveil forest as his territory and drive out the Goblerkin.",
+      "appearance": "A hulking figure with blue-tinged skin and a mane of icy hair. He wields a massive club made of frost-forged iron.",
+      "quirks": [
+        "Laughs at his own jokes, even when no one else does.",
+        "Carries a trophy of Goblerkin feathers as a symbol of his prowess.",
+        "Has a superstition about the number three and avoids it at all costs."
+      ],
+      "secrets": [
+        "He is actually a coward who only fights when he has the advantage.",
+        "He is secretly allied with the Goblerkin's rivals, the Ice Wyrms.",
+        "He has a hidden stash of stolen treasure buried in the forest."
+      ],
+      "imagePrompt": "A hulking frost giant with icy hair and a frost-forged club, adorned with Goblerkin feathers."
+    }
+  ],
+  "createdAt": "2025-11-28T06:27:22.713Z",
+  "access": {
+    "ownerId": "user_2b0PbIRrUhN2_CSiLV1X2",
+    "dmIds": [],
+    "playerAssignments": []
+  }
+}
