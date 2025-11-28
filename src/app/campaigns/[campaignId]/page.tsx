@@ -40,6 +40,7 @@ interface Scene {
 
 interface Monster {
   name: string
+  slug: string
   cr: string
 }
 
@@ -276,13 +277,14 @@ export default function CampaignPage() {
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {monsters.map((monster) => (
-                  <div
+                  <Link
                     key={monster.name}
-                    className="p-3 bg-muted/50 rounded-lg border border-border"
+                    href={`/campaigns/${campaignId}/monsters/${monster.slug}`}
+                    className="block p-3 bg-muted/50 rounded-lg border border-border hover:border-primary transition-colors"
                   >
                     <div className="font-medium text-foreground">{monster.name}</div>
                     <div className="text-sm text-muted-foreground">CR {monster.cr}</div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </CardContent>
