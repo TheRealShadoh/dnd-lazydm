@@ -156,7 +156,7 @@ export default function GenerateCampaignPage() {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '')
 
-      // Create the campaign
+      // Create the campaign with all generated content
       const res = await fetch('/api/campaigns', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -169,6 +169,10 @@ export default function GenerateCampaignPage() {
           players: generatedCampaign.players,
           duration: generatedCampaign.duration,
           genre: generatedCampaign.genre,
+          plotHooks: generatedCampaign.plotHooks,
+          scenes: generatedCampaign.scenes,
+          customMonsters: generatedCampaign.customMonsters,
+          majorNPCs: generatedCampaign.majorNPCs,
           theme: {
             primary: '#ab47bc',
             secondary: '#7b1fa2',
