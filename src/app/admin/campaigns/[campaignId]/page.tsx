@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Loader2, Plus, FileText, Swords, Image as ImageIcon, ExternalLink, Edit2, Eye, Upload, Users, X, Trash2, AlertTriangle } from 'lucide-react'
+import { Loader2, Plus, FileText, Swords, Image as ImageIcon, ExternalLink, Edit2, Eye, Upload, Users, X, Trash2, AlertTriangle, MessageSquare } from 'lucide-react'
 import { useConfirm } from '@/hooks/useConfirm'
 import { useToast } from '@/hooks/useToast'
 import { ManualCharacterForm } from '@/components/characters/ManualCharacterForm'
@@ -12,6 +12,7 @@ import { CampaignAccessManager } from '@/components/admin/CampaignAccessManager'
 import { MainNav } from '@/components/layout/MainNav'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { DMMessageComposer, PlayerLanguageEditor, MessageHistory } from '@/components/messaging'
 
 interface CampaignMetadata {
   name: string
@@ -126,6 +127,10 @@ export default function CampaignAdminPage() {
   const [uploadingPdf, setUploadingPdf] = useState(false)
   const [pdfProgress, setPdfProgress] = useState('')
 
+  // Campaign players for messaging
+  const [campaignPlayers, setCampaignPlayers] = useState<Array<{ id: string; name: string; email?: string }>>([])
+  const [showMessaging, setShowMessaging] = useState(false)
+
   useEffect(() => {
     const loadCampaign = async () => {
       try {
@@ -155,6 +160,21 @@ export default function CampaignAdminPage() {
         if (charactersResponse.ok) {
           const data = await charactersResponse.json()
           setCharacters(data.characters || [])
+        }
+
+        // Load campaign players for messaging
+        const [accessRes, usersRes] = await Promise.all([
+          fetch(`/api/campaign/${campaignId}/access`),
+          fetch('/api/users'),
+        ])
+        if (accessRes.ok && usersRes.ok) {
+          const accessData = await accessRes.json()
+          const usersData = await usersRes.json()
+          const playerIds = accessData.access?.playerAssignments?.map((p: any) => p.userId) || []
+          const players = usersData.users
+            ?.filter((u: any) => playerIds.includes(u.id))
+            .map((u: any) => ({ id: u.id, name: u.name, email: u.email })) || []
+          setCampaignPlayers(players)
         }
       } catch (error) {
         console.error('Error loading campaign:', error)
@@ -845,6 +865,40 @@ export default function CampaignAdminPage() {
 
           {/* Campaign Access Section */}
           <CampaignAccessManager campaignId={campaignId} />
+
+          {/* DM Messaging Section */}
+          <Card variant="fantasy">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-primary" />
+                  Player Messaging
+                </CardTitle>
+                <Button
+                  variant={showMessaging ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setShowMessaging(!showMessaging)}
+                >
+                  {showMessaging ? 'Hide Messaging' : 'Show Messaging'}
+                </Button>
+              </div>
+            </CardHeader>
+            {showMessaging && (
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <DMMessageComposer
+                    campaignId={campaignId}
+                    players={campaignPlayers}
+                  />
+                  <PlayerLanguageEditor
+                    campaignId={campaignId}
+                    players={campaignPlayers}
+                  />
+                </div>
+                <MessageHistory campaignId={campaignId} isDM={true} />
+              </CardContent>
+            )}
+          </Card>
 
           {/* Danger Zone - Delete Campaign */}
           <Card className="border-destructive/50">
