@@ -32,8 +32,9 @@ export default function EditScenePage() {
         const response = await fetch(`/api/campaigns/${campaignId}/scenes/${sceneSlug}`)
         if (response.ok) {
           const data = await response.json()
-          setTitle(data.title)
-          setContent(data.content)
+          // API returns { scene: { title, ... }, rawContent: string, ... }
+          setTitle(data.scene?.title || '')
+          setContent(data.rawContent || '')
         } else {
           toast.error('Failed to load scene')
         }

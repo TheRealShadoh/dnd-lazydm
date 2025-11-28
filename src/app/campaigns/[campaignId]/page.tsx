@@ -30,6 +30,7 @@ interface CampaignMetadata {
   thumbnail?: string
   plotHooks?: string[]
   themes?: string[]
+  scenes?: Scene[]
 }
 
 interface Scene {
@@ -64,11 +65,20 @@ export default function CampaignPage() {
         const metadata = await metadataRes.json()
         setCampaign(metadata)
 
-        // Load scenes
+        // Load scenes from API first
         const scenesRes = await fetch(`/api/campaigns/${campaignId}/scenes/list`)
         if (scenesRes.ok) {
           const scenesData = await scenesRes.json()
-          setScenes(scenesData.scenes || [])
+          const apiScenes = scenesData.scenes || []
+          // Use API scenes if available, otherwise fall back to metadata scenes
+          if (apiScenes.length > 0) {
+            setScenes(apiScenes)
+          } else if (metadata.scenes && metadata.scenes.length > 0) {
+            setScenes(metadata.scenes)
+          }
+        } else if (metadata.scenes && metadata.scenes.length > 0) {
+          // API failed, use metadata scenes
+          setScenes(metadata.scenes)
         }
 
         // Load monsters

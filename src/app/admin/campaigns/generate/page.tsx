@@ -99,6 +99,8 @@ export default function GenerateCampaignPage() {
   const [creating, setCreating] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [generationStep, setGenerationStep] = useState<string>('')
+  const [generationProgress, setGenerationProgress] = useState(0)
 
   const handleEnhancePrompt = async () => {
     if (!concept.trim()) {
@@ -147,8 +149,32 @@ export default function GenerateCampaignPage() {
     setGenerating(true)
     setError(null)
     setGeneratedCampaign(null)
+    setGenerationProgress(0)
+
+    // Simulate progress steps while waiting for API
+    const steps = [
+      { step: 'Analyzing your concept...', progress: 10 },
+      { step: 'Generating campaign structure...', progress: 25 },
+      { step: 'Creating story synopsis...', progress: 40 },
+      { step: 'Designing scenes and encounters...', progress: 55 },
+      { step: 'Building NPCs and characters...', progress: 70 },
+      { step: 'Crafting custom monsters...', progress: 85 },
+      { step: 'Finalizing campaign details...', progress: 95 },
+    ]
+
+    let stepIndex = 0
+    const progressInterval = setInterval(() => {
+      if (stepIndex < steps.length) {
+        setGenerationStep(steps[stepIndex].step)
+        setGenerationProgress(steps[stepIndex].progress)
+        stepIndex++
+      }
+    }, 3000)
 
     try {
+      setGenerationStep(steps[0].step)
+      setGenerationProgress(steps[0].progress)
+
       const res = await fetch('/api/ai/generate/campaign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -167,9 +193,12 @@ export default function GenerateCampaignPage() {
         }),
       })
 
+      clearInterval(progressInterval)
       const data = await res.json()
 
       if (res.ok && data.success) {
+        setGenerationStep('Complete!')
+        setGenerationProgress(100)
         setGeneratedCampaign(data.campaign)
         toast.success('Campaign generated successfully!')
       } else {
@@ -177,11 +206,14 @@ export default function GenerateCampaignPage() {
         toast.error(data.error || 'Failed to generate campaign')
       }
     } catch (err) {
+      clearInterval(progressInterval)
       console.error('Generation error:', err)
       setError('Failed to generate campaign. Please try again.')
       toast.error('Failed to generate campaign')
     } finally {
       setGenerating(false)
+      setGenerationStep('')
+      setGenerationProgress(0)
     }
   }
 
@@ -456,7 +488,7 @@ export default function GenerateCampaignPage() {
                 {generating ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Generating Campaign... (this may take a minute)
+                    Generating Campaign...
                   </>
                 ) : (
                   <>
@@ -465,6 +497,26 @@ export default function GenerateCampaignPage() {
                   </>
                 )}
               </Button>
+
+              {/* Generation Progress */}
+              {generating && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{generationStep}</span>
+                    <span className="text-primary font-medium">{generationProgress}%</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-500 ease-out"
+                      style={{ width: `${generationProgress}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Sparkles className="h-3 w-3 animate-pulse" />
+                    <span>AI is crafting your adventure... This typically takes 30-60 seconds.</span>
+                  </div>
+                </div>
+              )}
 
               {error && (
                 <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">

@@ -2,11 +2,20 @@
   "name": "The Court of Thorns and Mire",
   "slug": "court-of-thorns-mire",
   "description": "A romantasy one-shot adventure",
+  "synopsis": "In the Court of Thorns and Mire, destiny is forged not just in steel, but in the heart's fierce choices. You are a band of capable human adventurers hunting for survival on the snowy, northern fringe of the mortal realm when a mysterious white wolf leads you into a dangerous quest. Baron Alaric's daughter has been stolen by an Attor - a huge, winged creature - and carried toward the Iron Bridge into the Fae Wastelands. With a disgraced former Royal Ranger named Seraphine as your reluctant guide, you must navigate treacherous terrain, uncover hidden truths, and confront the fae courts themselves. Romance, danger, and destiny intertwine in this tale where passion is as powerful as any weapon.",
   "level": "4",
   "players": "1-2",
   "duration": "One-shot (3-4 hours)",
   "genre": "Romantasy",
   "thumbnail": "/campaigns/court-of-thorns-mire/img/seraphine.jpg",
+  "scenes": [
+    {"name": "The One Bed Trope", "slug": "one-bed-trope", "description": "Seeking shelter from the storm, the party discovers a cabin with limited sleeping arrangements."},
+    {"name": "Mire Ambush", "slug": "mire-ambush", "description": "The party is ambushed by fae creatures in the treacherous mire."},
+    {"name": "Warded Ruins", "slug": "warded-ruins", "description": "Ancient ruins hold secrets and magical wards that must be navigated."},
+    {"name": "Sphinx Riddle", "slug": "sphinx-riddle", "description": "A sphinx guards the path forward and demands answers to her riddles."},
+    {"name": "Boss Fight", "slug": "boss-fight", "description": "The climactic confrontation with the true villain behind the kidnapping."},
+    {"name": "Aftermath", "slug": "aftermath", "description": "The dust settles and choices made throughout the adventure bear fruit."}
+  ],
   "theme": {
     "primary": "#ab47bc",
     "secondary": "#7b1fa2"

@@ -24,7 +24,7 @@ export default function CampaignLayout({
       <aside className="w-64 border-r border-gray-800 sticky top-0 h-screen overflow-y-auto bg-gray-900/50">
         <div className="p-6" style={{ borderLeftColor: '#ab47bc' }}>
           <h2 className="text-xl font-bold mb-4" style={{ color: '#ab47bc' }}>
-            Frostfall: The Goblerkin's Feast
+            Frostfall: The Goblerkin&apos;s Feast
           </h2>
           <nav className="space-y-1">
             {navigation.map((item) => {
