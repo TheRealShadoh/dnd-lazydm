@@ -59,3 +59,7 @@ next
 
 # PDFs (character sheets, etc)
 *.pdf
+
+# User data (contains encrypted API keys)
+src/data/users.json
+src/data/system-prompts.json

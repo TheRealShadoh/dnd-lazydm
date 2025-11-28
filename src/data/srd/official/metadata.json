@@ -1,0 +1,22 @@
+{
+  "lastSyncDate": "2025-11-26T05:19:58.595Z",
+  "lastSyncTimestamp": 1764134398595,
+  "apiVersion": "1.0",
+  "sourceUrl": "https://api.open5e.com",
+  "officialEntryCount": {
+    "monsters": 1000,
+    "races": 20,
+    "classes": 12,
+    "spells": 1000,
+    "items": 91,
+    "backgrounds": 42
+  },
+  "customEntryCount": {
+    "monsters": 0,
+    "races": 0,
+    "classes": 0,
+    "spells": 0,
+    "items": 0,
+    "backgrounds": 0
+  }
+}

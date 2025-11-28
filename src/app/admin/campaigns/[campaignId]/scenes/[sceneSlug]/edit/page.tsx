@@ -4,7 +4,13 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { MarkdownEditor } from '@/components/editor/MarkdownEditor'
 import { useToast } from '@/hooks/useToast'
-import Link from 'next/link'
+import { MainNav } from '@/components/layout/MainNav'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Loader2, FileText, Lightbulb, Eye, AlertCircle } from 'lucide-react'
 
 export default function EditScenePage() {
   const router = useRouter()
@@ -26,8 +32,9 @@ export default function EditScenePage() {
         const response = await fetch(`/api/campaigns/${campaignId}/scenes/${sceneSlug}`)
         if (response.ok) {
           const data = await response.json()
-          setTitle(data.title)
-          setContent(data.content)
+          // API returns { scene: { title, ... }, rawContent: string, ... }
+          setTitle(data.scene?.title || '')
+          setContent(data.rawContent || '')
         } else {
           toast.error('Failed to load scene')
         }
@@ -71,116 +78,132 @@ export default function EditScenePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4">⏳</div>
-          <p className="text-gray-400">Loading scene...</p>
+      <div className="min-h-screen bg-background">
+        <MainNav />
+        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+            <p className="text-muted-foreground font-ui">Loading scene...</p>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link
-            href={`/admin/campaigns/${campaignId}`}
-            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            ← Back to Campaign
-          </Link>
-          <div>
-            <h1 className="text-4xl font-bold text-purple-400">Edit Scene</h1>
-            <p className="text-gray-400 mt-1">
-              Campaign: {campaignId} / Scene: {sceneSlug}
-            </p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-background">
+      <MainNav />
+      <main className="container max-w-7xl mx-auto py-8 px-4">
+        <PageHeader
+          title="Edit Scene"
+          description={`Campaign: ${campaignId} / Scene: ${sceneSlug}`}
+          breadcrumbs={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Admin', href: '/admin' },
+            { label: 'Campaign', href: `/admin/campaigns/${campaignId}` },
+            { label: 'Edit Scene' },
+          ]}
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 mt-8">
           {/* Scene Information */}
-          <div className="bg-gray-900 rounded-xl border-2 border-gray-800 p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Scene Information</h2>
-
-            <div className="space-y-4">
+          <Card variant="fantasy">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Scene Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               {/* Scene Title */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Scene Title *
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="title">Scene Title *</Label>
+                <Input
+                  id="title"
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
                   placeholder="The Dark Forest"
                 />
               </div>
 
-              <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                <p className="text-sm text-gray-400">
-                  <strong>Note:</strong> The scene slug ({sceneSlug}) cannot be changed when editing.
+              <div className="p-4 bg-muted/50 rounded-lg border border-border flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Note:</strong> The scene slug ({sceneSlug}) cannot be changed when editing.
                   To change the URL, create a new scene.
                 </p>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Scene Content Editor */}
-          <div className="bg-gray-900 rounded-xl border-2 border-gray-800 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-white">Scene Content</h2>
-              <div className="text-sm text-gray-400">
-                Supports Markdown, images, tables, and dice notation
+          <Card variant="fantasy">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <CardTitle>Scene Content</CardTitle>
+                <span className="text-sm text-muted-foreground">
+                  Supports Markdown, images, tables, and dice notation
+                </span>
               </div>
-            </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <MarkdownEditor value={content} onChange={setContent} height={600} />
 
-            <MarkdownEditor value={content} onChange={setContent} height={600} />
-
-            <div className="mt-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-              <h3 className="font-semibold text-purple-400 mb-2">💡 Tips</h3>
-              <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Use <code className="text-purple-300">&lt;DiceNotation value=&quot;1d20&quot; /&gt;</code> for clickable dice</li>
-                <li>• Use <code className="text-purple-300">&lt;ImageLightbox src=&quot;...&quot; /&gt;</code> for images with lightbox</li>
-                <li>• Reference monsters: <code className="text-purple-300">[Goblin](../reference/monsters#goblin)</code></li>
-                <li>• Add battle maps: <code className="text-purple-300">![Map](../img/map_name.jpg)</code></li>
-              </ul>
-            </div>
-          </div>
+              <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                <h3 className="font-semibold text-primary mb-2 flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4" />
+                  Tips
+                </h3>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Use <code className="text-primary bg-primary/10 px-1 rounded">&lt;DiceNotation value=&quot;1d20&quot; /&gt;</code> for clickable dice</li>
+                  <li>• Use <code className="text-primary bg-primary/10 px-1 rounded">&lt;ImageLightbox src=&quot;...&quot; /&gt;</code> for images with lightbox</li>
+                  <li>• Reference monsters: <code className="text-primary bg-primary/10 px-1 rounded">[Goblin](../reference/monsters#goblin)</code></li>
+                  <li>• Add battle maps: <code className="text-primary bg-primary/10 px-1 rounded">![Map](../img/map_name.jpg)</code></li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Submit Button */}
-          <div className="flex gap-4">
-            <button
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button
               type="submit"
+              variant="primary"
+              size="lg"
               disabled={saving || !title}
-              className="flex-1 px-6 py-4 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-700
-                       disabled:cursor-not-allowed rounded-lg font-semibold text-lg
-                       transition-colors duration-200"
+              className="flex-1"
             >
-              {saving ? 'Saving Changes...' : 'Save Changes'}
-            </button>
-            <Link
-              href={`/campaigns/${campaignId}/scenes/${sceneSlug}`}
-              target="_blank"
-              className="px-6 py-4 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold text-lg
-                       transition-colors duration-200 text-center flex items-center gap-2"
+              {saving ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Saving Changes...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={() => window.open(`/campaigns/${campaignId}/scenes/${sceneSlug}`, '_blank')}
             >
-              👁️ Preview
-            </Link>
-            <Link
-              href={`/admin/campaigns/${campaignId}`}
-              className="px-6 py-4 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold text-lg
-                       transition-colors duration-200 text-center"
+              <Eye className="h-5 w-5 mr-2" />
+              Preview
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={() => router.push(`/admin/campaigns/${campaignId}`)}
             >
               Cancel
-            </Link>
+            </Button>
           </div>
         </form>
-      </div>
+      </main>
     </div>
   )
 }

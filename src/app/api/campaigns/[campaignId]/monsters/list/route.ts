@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
 
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ campaignId: string }> }
@@ -25,7 +32,7 @@ export async function GET(
       // Parse monsters from the content
       // Look for ## headings that are monster names (excluding the main title)
       const lines = content.split('\n')
-      const monsters: Array<{ name: string; cr: string }> = []
+      const monsters: Array<{ name: string; slug: string; cr: string }> = []
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i]
@@ -42,7 +49,7 @@ export async function GET(
             ? monsterLine.substring(0, monsterLine.indexOf('(CR')).trim()
             : monsterLine
 
-          monsters.push({ name, cr })
+          monsters.push({ name, slug: slugify(name), cr })
         }
       }
 

@@ -140,10 +140,10 @@ export async function POST(
 
         const { userId } = validation.data;
 
-        // Only owner can add DMs
-        if (!isOwnerCheck) {
+        // Only owner or admin can add DMs
+        if (!isOwnerCheck && !isAdmin) {
           return NextResponse.json(
-            { error: 'Only the campaign owner can add DMs' },
+            { error: 'Only the campaign owner or admin can add DMs' },
             { status: 403 }
           );
         }
@@ -167,10 +167,10 @@ export async function POST(
 
         const { userId } = validation.data;
 
-        // Only owner can remove DMs
-        if (!isOwnerCheck) {
+        // Only owner or admin can remove DMs
+        if (!isOwnerCheck && !isAdmin) {
           return NextResponse.json(
-            { error: 'Only the campaign owner can remove DMs' },
+            { error: 'Only the campaign owner or admin can remove DMs' },
             { status: 403 }
           );
         }

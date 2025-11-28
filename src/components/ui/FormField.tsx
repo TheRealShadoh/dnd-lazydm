@@ -1,12 +1,17 @@
 'use client'
 
-import { ReactNode, InputHTMLAttributes } from 'react'
+import * as React from 'react'
+import { AlertCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Input, InputProps } from './Input'
+import { Textarea, TextareaProps } from './Textarea'
+import { Label } from './Label'
 
-interface FormFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+interface FormFieldProps extends Omit<InputProps, 'error'> {
   label: string
   error?: string
   helpText?: string
-  icon?: ReactNode
+  icon?: React.ReactNode
 }
 
 export function FormField({
@@ -16,53 +21,49 @@ export function FormField({
   icon,
   className = '',
   id,
+  required,
   ...props
 }: FormFieldProps) {
   const inputId = id || label.toLowerCase().replace(/\s+/g, '-')
 
   return (
     <div className="space-y-2">
-      <label htmlFor={inputId} className="block text-sm font-semibold text-gray-300">
+      <Label htmlFor={inputId} className="text-foreground">
         {label}
-        {props.required && <span className="text-red-400 ml-1">*</span>}
-      </label>
+        {required && <span className="text-destructive ml-1">*</span>}
+      </Label>
 
       <div className="relative">
         {icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
             {icon}
           </div>
         )}
-        <input
+        <Input
           id={inputId}
-          className={`
-            w-full px-4 py-3 ${icon ? 'pl-10' : ''}
-            bg-gray-800 border-2 rounded-lg text-white
-            transition-colors duration-200
-            focus:outline-none
-            ${error
-              ? 'border-red-500 focus:border-red-400'
-              : 'border-gray-700 focus:border-purple-500'
-            }
-            ${className}
-          `}
+          className={cn(icon && 'pl-10', className)}
+          error={!!error}
+          required={required}
           aria-invalid={!!error}
-          aria-describedby={error ? `${inputId}-error` : helpText ? `${inputId}-help` : undefined}
+          aria-describedby={
+            error ? `${inputId}-error` : helpText ? `${inputId}-help` : undefined
+          }
           {...props}
         />
       </div>
 
       {error && (
-        <p id={`${inputId}-error`} className="text-sm text-red-400 flex items-center gap-1">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+        <p
+          id={`${inputId}-error`}
+          className="text-sm text-destructive flex items-center gap-1.5"
+        >
+          <AlertCircle className="h-4 w-4" />
           {error}
         </p>
       )}
 
       {helpText && !error && (
-        <p id={`${inputId}-help`} className="text-sm text-gray-500">
+        <p id={`${inputId}-help`} className="text-sm text-muted-foreground">
           {helpText}
         </p>
       )}
@@ -70,7 +71,7 @@ export function FormField({
   )
 }
 
-interface TextAreaFieldProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextAreaFieldProps extends Omit<TextareaProps, 'error'> {
   label: string
   error?: string
   helpText?: string
@@ -82,46 +83,42 @@ export function TextAreaField({
   helpText,
   className = '',
   id,
+  required,
   ...props
 }: TextAreaFieldProps) {
   const inputId = id || label.toLowerCase().replace(/\s+/g, '-')
 
   return (
     <div className="space-y-2">
-      <label htmlFor={inputId} className="block text-sm font-semibold text-gray-300">
+      <Label htmlFor={inputId} className="text-foreground">
         {label}
-        {props.required && <span className="text-red-400 ml-1">*</span>}
-      </label>
+        {required && <span className="text-destructive ml-1">*</span>}
+      </Label>
 
-      <textarea
+      <Textarea
         id={inputId}
-        className={`
-          w-full px-4 py-3
-          bg-gray-800 border-2 rounded-lg text-white
-          transition-colors duration-200
-          focus:outline-none
-          ${error
-            ? 'border-red-500 focus:border-red-400'
-            : 'border-gray-700 focus:border-purple-500'
-          }
-          ${className}
-        `}
+        className={className}
+        error={!!error}
+        required={required}
         aria-invalid={!!error}
-        aria-describedby={error ? `${inputId}-error` : helpText ? `${inputId}-help` : undefined}
+        aria-describedby={
+          error ? `${inputId}-error` : helpText ? `${inputId}-help` : undefined
+        }
         {...props}
       />
 
       {error && (
-        <p id={`${inputId}-error`} className="text-sm text-red-400 flex items-center gap-1">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+        <p
+          id={`${inputId}-error`}
+          className="text-sm text-destructive flex items-center gap-1.5"
+        >
+          <AlertCircle className="h-4 w-4" />
           {error}
         </p>
       )}
 
       {helpText && !error && (
-        <p id={`${inputId}-help`} className="text-sm text-gray-500">
+        <p id={`${inputId}-help`} className="text-sm text-muted-foreground">
           {helpText}
         </p>
       )}

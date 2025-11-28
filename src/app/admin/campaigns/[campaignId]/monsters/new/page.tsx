@@ -1,8 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { useToast } from '@/hooks/useToast'
+import { MainNav } from '@/components/layout/MainNav'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Textarea } from '@/components/ui/Textarea'
+import { Loader2, Swords, Shield, Heart, Zap, Brain, Plus, Trash2, BookOpen } from 'lucide-react'
 import Link from 'next/link'
+import { MonsterTemplateSelector } from '@/components/srd'
+import { srdMonsterToFormData } from '@/lib/srd/form-mappers'
+import type { SRDMonster } from '@/lib/srd/models'
+import { AIMonsterGenerator, type GeneratedMonsterData } from '@/components/ai'
 
 interface Action {
   name: string
@@ -14,11 +27,37 @@ interface Trait {
   description: string
 }
 
+/**
+ * Normalize array or object fields from AI response to string
+ */
+function normalizeArrayOrObject(
+  data: string[] | Record<string, string | number> | undefined,
+  defaultValue: string = ''
+): string {
+  if (!data) return defaultValue
+  if (Array.isArray(data)) return data.join(', ')
+  // Handle object format: { key: value } -> "Key +value" or "Key value"
+  return Object.entries(data)
+    .map(([key, value]) => {
+      const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      if (typeof value === 'number') {
+        const sign = value >= 0 ? '+' : ''
+        return `${formattedKey} ${sign}${value}`
+      }
+      return `${formattedKey} ${value}`
+    })
+    .join(', ')
+}
+
 export default function NewMonsterPage() {
   const router = useRouter()
   const params = useParams()
   const campaignId = params.campaignId as string
+  const toast = useToast()
   const [loading, setLoading] = useState(false)
+
+  // Template state
+  const [selectedTemplate, setSelectedTemplate] = useState<SRDMonster | null>(null)
 
   // Basic Info
   const [name, setName] = useState('')
@@ -91,6 +130,82 @@ export default function NewMonsterPage() {
     setActions(updated)
   }
 
+  // Template handlers
+  const handleSelectTemplate = useCallback((monster: SRDMonster) => {
+    setSelectedTemplate(monster)
+
+    // Convert SRD monster to form data and populate all fields
+    const formData = srdMonsterToFormData(monster)
+
+    setName(formData.name)
+    setSize(formData.size)
+    setType(formData.type)
+    setAlignment(formData.alignment)
+    setCr(formData.cr)
+    setAc(formData.ac)
+    setAcType(formData.acType)
+    setHp(formData.hp)
+    setHitDice(formData.hitDice)
+    setSpeed(formData.speed)
+    setStr(formData.str)
+    setDex(formData.dex)
+    setConst(formData.con)
+    setInt(formData.int)
+    setWis(formData.wis)
+    setCha(formData.cha)
+    setSaves(formData.saves)
+    setSkills(formData.skills)
+    setResistances(formData.resistances)
+    setImmunities(formData.immunities)
+    setSenses(formData.senses)
+    setLanguages(formData.languages)
+    setTraits(formData.traits)
+    setActions(formData.actions)
+    setImageUrl(formData.imageUrl)
+
+    toast.success(`Loaded template: ${monster.name}`)
+  }, [toast])
+
+  const handleClearTemplate = useCallback(() => {
+    setSelectedTemplate(null)
+    // Don't clear the form - user may want to keep their edits
+  }, [])
+
+  // AI Generation handler
+  const handleAIGenerated = useCallback((monster: GeneratedMonsterData) => {
+    // Populate form with AI-generated monster
+    setName(monster.name)
+    setSize(monster.size)
+    setType(monster.type)
+    setAlignment(monster.alignment || 'Neutral')
+    setCr(monster.challengeRating.toString())
+    setAc(monster.armorClass.toString())
+    setAcType(monster.armorType || '')
+    setHp(monster.hitPoints.toString())
+    setHitDice(monster.hitDice)
+    setSpeed(typeof monster.speed === 'string' ? monster.speed : '30 ft.')
+    setStr(monster.abilities.str.toString())
+    setDex(monster.abilities.dex.toString())
+    setConst(monster.abilities.con.toString())
+    setInt(monster.abilities.int.toString())
+    setWis(monster.abilities.wis.toString())
+    setCha(monster.abilities.cha.toString())
+    setSaves(normalizeArrayOrObject(monster.savingThrows))
+    setSkills(normalizeArrayOrObject(monster.skills))
+    setResistances(monster.damageResistances?.join(', ') || '')
+    setImmunities(monster.damageImmunities?.join(', ') || '')
+    setSenses(normalizeArrayOrObject(monster.senses, 'Passive Perception 10'))
+    setLanguages(monster.languages?.join(', ') || '')
+    setTraits(monster.traits || [])
+    setActions(monster.actions || [])
+    setImageUrl('')
+
+    // Clear template selection since this is AI-generated
+    setSelectedTemplate(null)
+
+    toast.success(`AI generated: ${monster.name}`)
+  }, [toast])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -126,64 +241,88 @@ export default function NewMonsterPage() {
       })
 
       if (response.ok) {
+        toast.success('Monster created successfully!')
         router.push(`/admin/campaigns/${campaignId}`)
       } else {
-        alert('Failed to create monster')
+        toast.error('Failed to create monster')
       }
     } catch (error) {
       console.error('Error creating monster:', error)
-      alert('Error creating monster')
+      toast.error('Error creating monster')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 p-8">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link
-            href={`/admin/campaigns/${campaignId}`}
-            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            ← Back to Campaign
+    <div className="min-h-screen bg-background">
+      <MainNav />
+      <main className="container max-w-5xl mx-auto py-8 px-4">
+        <div className="flex items-start justify-between">
+          <PageHeader
+            title="Create Monster Stat Block"
+            description={`Campaign: ${campaignId}`}
+            breadcrumbs={[
+              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Admin', href: '/admin' },
+              { label: 'Campaign', href: `/admin/campaigns/${campaignId}` },
+              { label: 'New Monster' },
+            ]}
+          />
+          <Link href="/srd?type=monsters" target="_blank">
+            <Button variant="outline" size="sm" className="gap-2">
+              <BookOpen className="h-4 w-4" />
+              Browse SRD
+            </Button>
           </Link>
-          <div>
-            <h1 className="text-4xl font-bold text-purple-400">Create Monster Stat Block</h1>
-            <p className="text-gray-400 mt-1">Campaign: {campaignId}</p>
-          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <div className="bg-gray-900 rounded-xl border-2 border-gray-800 p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Basic Information</h2>
+        <form onSubmit={handleSubmit} className="space-y-6 mt-8">
+          {/* AI Monster Generator */}
+          <AIMonsterGenerator
+            onGenerated={handleAIGenerated}
+            campaignId={campaignId}
+          />
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Monster Name *
-                </label>
-                <input
+          {/* SRD Template Selector */}
+          <MonsterTemplateSelector
+            onSelect={handleSelectTemplate}
+            onClear={handleClearTemplate}
+            selectedMonster={selectedTemplate}
+          />
+
+          {/* Basic Information */}
+          <Card variant="fantasy">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Swords className="h-5 w-5 text-primary" />
+                Basic Information
+              </CardTitle>
+              <CardDescription>Core details about your monster</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Monster Name *</Label>
+                <Input
+                  id="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
                   placeholder="Goblin"
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Size</label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="size">Size</Label>
                   <select
+                    id="size"
                     value={size}
                     onChange={(e) => setSize(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                             focus:border-purple-500 focus:outline-none text-white"
+                    className="w-full px-4 py-2.5 bg-muted border border-border rounded-lg
+                             focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20
+                             text-foreground font-ui"
                   >
                     <option>Tiny</option>
                     <option>Small</option>
@@ -194,366 +333,383 @@ export default function NewMonsterPage() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Type</label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="type">Type</Label>
+                  <Input
+                    id="type"
                     type="text"
                     value={type}
                     onChange={(e) => setType(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                             focus:border-purple-500 focus:outline-none text-white"
                     placeholder="Humanoid, Fey, etc."
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Alignment
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="alignment">Alignment</Label>
+                  <Input
+                    id="alignment"
                     type="text"
                     value={alignment}
                     onChange={(e) => setAlignment(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                             focus:border-purple-500 focus:outline-none text-white"
                     placeholder="Neutral Evil"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Image URL (optional)
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="imageUrl">Image URL (optional)</Label>
+                <Input
+                  id="imageUrl"
                   type="text"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white font-mono text-sm"
+                  className="font-mono text-sm"
                   placeholder="/campaigns/your-campaign/img/monster.jpg"
                 />
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Combat Stats */}
-          <div className="bg-gray-900 rounded-xl border-2 border-gray-800 p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Combat Stats</h2>
+          <Card variant="fantasy">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                Combat Stats
+              </CardTitle>
+              <CardDescription>Armor, hit points, and speed</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Armor Class</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      value={ac}
+                      onChange={(e) => setAc(e.target.value)}
+                      className="w-24"
+                      placeholder="12"
+                    />
+                    <Input
+                      type="text"
+                      value={acType}
+                      onChange={(e) => setAcType(e.target.value)}
+                      className="flex-1"
+                      placeholder="Natural Armor"
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Armor Class
-                </label>
-                <div className="flex gap-2">
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="speed">Speed</Label>
+                  <Input
+                    id="speed"
                     type="text"
-                    value={ac}
-                    onChange={(e) => setAc(e.target.value)}
-                    className="w-24 px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                             focus:border-purple-500 focus:outline-none text-white"
-                    placeholder="12"
+                    value={speed}
+                    onChange={(e) => setSpeed(e.target.value)}
+                    placeholder="30 ft., fly 60 ft."
                   />
-                  <input
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="hp">Hit Points</Label>
+                  <Input
+                    id="hp"
                     type="text"
-                    value={acType}
-                    onChange={(e) => setAcType(e.target.value)}
-                    className="flex-1 px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                             focus:border-purple-500 focus:outline-none text-white"
-                    placeholder="Natural Armor"
+                    value={hp}
+                    onChange={(e) => setHp(e.target.value)}
+                    placeholder="22"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="hitDice">Hit Dice</Label>
+                  <Input
+                    id="hitDice"
+                    type="text"
+                    value={hitDice}
+                    onChange={(e) => setHitDice(e.target.value)}
+                    placeholder="4d8+4"
+                    className="font-mono"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor="cr">Challenge Rating</Label>
+                  <Input
+                    id="cr"
+                    type="text"
+                    value={cr}
+                    onChange={(e) => setCr(e.target.value)}
+                    placeholder="1"
                   />
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">Speed</label>
-                <input
-                  type="text"
-                  value={speed}
-                  onChange={(e) => setSpeed(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
-                  placeholder="30 ft., fly 60 ft."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Hit Points
-                </label>
-                <input
-                  type="text"
-                  value={hp}
-                  onChange={(e) => setHp(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
-                  placeholder="22"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Hit Dice
-                </label>
-                <input
-                  type="text"
-                  value={hitDice}
-                  onChange={(e) => setHitDice(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
-                  placeholder="4d8+4"
-                />
-              </div>
-
-              <div className="col-span-2">
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Challenge Rating
-                </label>
-                <input
-                  type="text"
-                  value={cr}
-                  onChange={(e) => setCr(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
-                  placeholder="1"
-                />
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Ability Scores */}
-          <div className="bg-gray-900 rounded-xl border-2 border-gray-800 p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Ability Scores</h2>
-
-            <div className="grid grid-cols-6 gap-3">
-              {[
-                { label: 'STR', value: str, setter: setStr },
-                { label: 'DEX', value: dex, setter: setDex },
-                { label: 'CON', value: con, setter: setConst },
-                { label: 'INT', value: int, setter: setInt },
-                { label: 'WIS', value: wis, setter: setWis },
-                { label: 'CHA', value: cha, setter: setCha },
-              ].map((ability) => (
-                <div key={ability.label}>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2 text-center">
-                    {ability.label}
-                  </label>
-                  <input
-                    type="number"
-                    value={ability.value}
-                    onChange={(e) => ability.setter(e.target.value)}
-                    className="w-full px-2 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                             focus:border-purple-500 focus:outline-none text-white text-center"
-                  />
-                  <div className="text-center text-sm text-purple-400 mt-1">
-                    ({calculateModifier(ability.value)})
+          <Card variant="fantasy">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                Ability Scores
+              </CardTitle>
+              <CardDescription>The six core abilities and modifiers</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                {[
+                  { label: 'STR', value: str, setter: setStr },
+                  { label: 'DEX', value: dex, setter: setDex },
+                  { label: 'CON', value: con, setter: setConst },
+                  { label: 'INT', value: int, setter: setInt },
+                  { label: 'WIS', value: wis, setter: setWis },
+                  { label: 'CHA', value: cha, setter: setCha },
+                ].map((ability) => (
+                  <div key={ability.label} className="space-y-2">
+                    <Label className="text-center block">{ability.label}</Label>
+                    <Input
+                      type="number"
+                      value={ability.value}
+                      onChange={(e) => ability.setter(e.target.value)}
+                      className="text-center"
+                    />
+                    <div className="text-center text-sm text-primary font-mono">
+                      ({calculateModifier(ability.value)})
+                    </div>
                   </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
+                <div className="space-y-2">
+                  <Label htmlFor="saves">Saving Throws</Label>
+                  <Input
+                    id="saves"
+                    type="text"
+                    value={saves}
+                    onChange={(e) => setSaves(e.target.value)}
+                    placeholder="Dex +4, Wis +2"
+                  />
                 </div>
-              ))}
-            </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Saving Throws
-                </label>
-                <input
-                  type="text"
-                  value={saves}
-                  onChange={(e) => setSaves(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
-                  placeholder="Dex +4, Wis +2"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="skills">Skills</Label>
+                  <Input
+                    id="skills"
+                    type="text"
+                    value={skills}
+                    onChange={(e) => setSkills(e.target.value)}
+                    placeholder="Stealth +6, Perception +2"
+                  />
+                </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">Skills</label>
-                <input
-                  type="text"
-                  value={skills}
-                  onChange={(e) => setSkills(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
-                  placeholder="Stealth +6, Perception +2"
-                />
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Additional Properties */}
-          <div className="bg-gray-900 rounded-xl border-2 border-gray-800 p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Additional Properties</h2>
+          <Card variant="fantasy">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-primary" />
+                Additional Properties
+              </CardTitle>
+              <CardDescription>Resistances, immunities, senses, and languages</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="resistances">Damage Resistances</Label>
+                  <Input
+                    id="resistances"
+                    type="text"
+                    value={resistances}
+                    onChange={(e) => setResistances(e.target.value)}
+                    placeholder="Fire, Cold"
+                  />
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Damage Resistances
-                </label>
-                <input
-                  type="text"
-                  value={resistances}
-                  onChange={(e) => setResistances(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
-                  placeholder="Fire, Cold"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="immunities">Damage Immunities</Label>
+                  <Input
+                    id="immunities"
+                    type="text"
+                    value={immunities}
+                    onChange={(e) => setImmunities(e.target.value)}
+                    placeholder="Poison"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Damage Immunities
-                </label>
-                <input
-                  type="text"
-                  value={immunities}
-                  onChange={(e) => setImmunities(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
-                  placeholder="Poison"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="senses">Senses</Label>
+                  <Input
+                    id="senses"
+                    type="text"
+                    value={senses}
+                    onChange={(e) => setSenses(e.target.value)}
+                    placeholder="Darkvision 60 ft., Passive Perception 12"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">Senses</label>
-                <input
-                  type="text"
-                  value={senses}
-                  onChange={(e) => setSenses(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
-                  placeholder="Darkvision 60 ft., Passive Perception 12"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="languages">Languages</Label>
+                  <Input
+                    id="languages"
+                    type="text"
+                    value={languages}
+                    onChange={(e) => setLanguages(e.target.value)}
+                    placeholder="Common, Goblin"
+                  />
+                </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">Languages</label>
-                <input
-                  type="text"
-                  value={languages}
-                  onChange={(e) => setLanguages(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg
-                           focus:border-purple-500 focus:outline-none text-white"
-                  placeholder="Common, Goblin"
-                />
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Traits */}
-          <div className="bg-gray-900 rounded-xl border-2 border-gray-800 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-white">Traits</h2>
-              <button
-                type="button"
-                onClick={addTrait}
-                className="px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg transition-colors"
-              >
-                + Add Trait
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {traits.map((trait, index) => (
-                <div key={index} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                  <div className="flex justify-between items-start mb-2">
-                    <input
-                      type="text"
-                      value={trait.name}
-                      onChange={(e) => updateTrait(index, 'name', e.target.value)}
-                      className="flex-1 px-3 py-2 bg-gray-700 border-2 border-gray-600 rounded
-                               focus:border-purple-500 focus:outline-none text-white font-semibold"
-                      placeholder="Trait Name"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeTrait(index)}
-                      className="ml-2 px-3 py-2 bg-red-500/20 hover:bg-red-500/40 rounded text-red-400"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <textarea
-                    value={trait.description}
-                    onChange={(e) => updateTrait(index, 'description', e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-700 border-2 border-gray-600 rounded
-                             focus:border-purple-500 focus:outline-none text-white"
-                    rows={2}
-                    placeholder="Description (use <DiceNotation value='DC 15' /> for dice)"
-                  />
+          <Card variant="fantasy">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    Traits
+                  </CardTitle>
+                  <CardDescription>Special abilities and passive features</CardDescription>
                 </div>
-              ))}
-            </div>
-          </div>
+                <Button type="button" variant="primary" size="sm" onClick={addTrait}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Trait
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {traits.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">
+                  No traits added yet. Click &quot;Add Trait&quot; to add one.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {traits.map((trait, index) => (
+                    <div key={index} className="bg-muted/50 rounded-lg p-4 border border-border">
+                      <div className="flex justify-between items-start gap-2 mb-2">
+                        <Input
+                          type="text"
+                          value={trait.name}
+                          onChange={(e) => updateTrait(index, 'name', e.target.value)}
+                          className="flex-1 font-semibold"
+                          placeholder="Trait Name"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeTrait(index)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Textarea
+                        value={trait.description}
+                        onChange={(e) => updateTrait(index, 'description', e.target.value)}
+                        rows={2}
+                        placeholder="Description (use <DiceNotation value='DC 15' /> for dice)"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Actions */}
-          <div className="bg-gray-900 rounded-xl border-2 border-gray-800 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-white">Actions</h2>
-              <button
-                type="button"
-                onClick={addAction}
-                className="px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg transition-colors"
-              >
-                + Add Action
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {actions.map((action, index) => (
-                <div key={index} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                  <div className="flex justify-between items-start mb-2">
-                    <input
-                      type="text"
-                      value={action.name}
-                      onChange={(e) => updateAction(index, 'name', e.target.value)}
-                      className="flex-1 px-3 py-2 bg-gray-700 border-2 border-gray-600 rounded
-                               focus:border-purple-500 focus:outline-none text-white font-semibold"
-                      placeholder="Action Name"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeAction(index)}
-                      className="ml-2 px-3 py-2 bg-red-500/20 hover:bg-red-500/40 rounded text-red-400"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <textarea
-                    value={action.description}
-                    onChange={(e) => updateAction(index, 'description', e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-700 border-2 border-gray-600 rounded
-                             focus:border-purple-500 focus:outline-none text-white"
-                    rows={2}
-                    placeholder="Description (e.g., Melee Attack: <DiceNotation value='+5' /> to hit, Hit: <DiceNotation value='1d8+3' /> damage)"
-                  />
+          <Card variant="fantasy">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Swords className="h-5 w-5 text-primary" />
+                    Actions
+                  </CardTitle>
+                  <CardDescription>Attacks and action-economy abilities</CardDescription>
                 </div>
-              ))}
-            </div>
-          </div>
+                <Button type="button" variant="primary" size="sm" onClick={addAction}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Action
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {actions.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">
+                  No actions added yet. Click &quot;Add Action&quot; to add one.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {actions.map((action, index) => (
+                    <div key={index} className="bg-muted/50 rounded-lg p-4 border border-border">
+                      <div className="flex justify-between items-start gap-2 mb-2">
+                        <Input
+                          type="text"
+                          value={action.name}
+                          onChange={(e) => updateAction(index, 'name', e.target.value)}
+                          className="flex-1 font-semibold"
+                          placeholder="Action Name"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeAction(index)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Textarea
+                        value={action.description}
+                        onChange={(e) => updateAction(index, 'description', e.target.value)}
+                        rows={2}
+                        placeholder="Description (e.g., Melee Attack: <DiceNotation value='+5' /> to hit, Hit: <DiceNotation value='1d8+3' /> damage)"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Submit */}
-          <div className="flex gap-4">
-            <button
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button
               type="submit"
+              variant="primary"
+              size="lg"
               disabled={loading || !name}
-              className="flex-1 px-6 py-4 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-700
-                       disabled:cursor-not-allowed rounded-lg font-semibold text-lg
-                       transition-colors duration-200"
+              className="flex-1"
             >
-              {loading ? 'Creating Monster...' : 'Create Monster'}
-            </button>
-            <Link
-              href={`/admin/campaigns/${campaignId}`}
-              className="px-6 py-4 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold text-lg
-                       transition-colors duration-200 text-center"
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Creating Monster...
+                </>
+              ) : (
+                'Create Monster'
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={() => router.push(`/admin/campaigns/${campaignId}`)}
             >
               Cancel
-            </Link>
+            </Button>
           </div>
         </form>
-      </div>
+      </main>
     </div>
   )
 }

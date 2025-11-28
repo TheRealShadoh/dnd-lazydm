@@ -1,50 +1,55 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { signIn } from 'next-auth/react';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { signIn } from 'next-auth/react'
+import { Loader2 } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
 
 export default function RegisterForm() {
-  const router = useRouter();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const router = useRouter()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+    e.preventDefault()
+    setError('')
 
     // Validate passwords match
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
+      setError('Passwords do not match')
+      return
     }
 
     // Validate password length
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
+      setError('Password must be at least 8 characters')
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
 
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || 'Registration failed');
-        setLoading(false);
-        return;
+        setError(data.error || 'Registration failed')
+        setLoading(false)
+        return
       }
 
       // Auto-login after successful registration
@@ -52,106 +57,116 @@ export default function RegisterForm() {
         email,
         password,
         redirect: false,
-      });
+      })
 
       if (result?.ok) {
-        router.push('/dashboard');
-        router.refresh();
+        router.push('/dashboard')
+        router.refresh()
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-      setLoading(false);
+    } catch {
+      setError('An error occurred. Please try again.')
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-gray-900 border border-gray-800 rounded-lg shadow-xl">
-      <h2 className="text-2xl font-bold mb-6 text-center text-white">Create Account</h2>
+    <Card variant="fantasy" className="shadow-fantasy-lg">
+      <CardHeader className="space-y-1 text-center">
+        <CardTitle className="text-2xl">Create Account</CardTitle>
+        <CardDescription>
+          Join LazyDM to manage your campaigns
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {error && (
+          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 text-destructive rounded-lg text-sm">
+            {error}
+          </div>
+        )}
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-900/50 border border-red-800 text-red-400 rounded">
-          {error}
-        </div>
-      )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              type="text"
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              placeholder="Your name"
+              autoComplete="name"
+            />
+          </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium mb-1 text-gray-300">
-            Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            placeholder="Your name"
-          />
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
+          </div>
 
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1 text-gray-300">
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            placeholder="you@example.com"
-          />
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+              placeholder="Create a password"
+              autoComplete="new-password"
+            />
+            <p className="text-xs text-muted-foreground">At least 8 characters</p>
+          </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium mb-1 text-gray-300">
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            placeholder="••••••••"
-          />
-          <p className="text-xs text-gray-500 mt-1">At least 8 characters</p>
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input
+              type="password"
+              id="confirmPassword"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              placeholder="Confirm your password"
+              autoComplete="new-password"
+            />
+          </div>
 
-        <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1 text-gray-300">
-            Confirm Password
-          </label>
-          <input
-            type="password"
-            id="confirmPassword"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            placeholder="••••••••"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors font-semibold"
-        >
-          {loading ? 'Creating account...' : 'Sign Up'}
-        </button>
-      </form>
-
-      <p className="mt-4 text-center text-sm text-gray-400">
-        Already have an account?{' '}
-        <Link href="/login" className="text-purple-400 hover:text-purple-300 hover:underline">
-          Sign in
-        </Link>
-      </p>
-    </div>
-  );
+          <Button
+            type="submit"
+            variant="primary"
+            className="w-full"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Creating account...
+              </>
+            ) : (
+              'Sign Up'
+            )}
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="justify-center">
+        <p className="text-sm text-muted-foreground">
+          Already have an account?{' '}
+          <Link
+            href="/login"
+            className="font-medium text-primary hover:text-primary/80 transition-colors"
+          >
+            Sign in
+          </Link>
+        </p>
+      </CardFooter>
+    </Card>
+  )
 }

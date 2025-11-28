@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="24" viewBox="0 0 400 24">
+  <defs>
+    <linearGradient id="dividerGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#d4a853" stop-opacity="0"/>
+      <stop offset="20%" stop-color="#f5d78e" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#d4a853" stop-opacity="1"/>
+      <stop offset="80%" stop-color="#f5d78e" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#d4a853" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Main line -->
+  <path d="M0 12 Q 100 8, 200 12 T 400 12"
+        stroke="url(#dividerGold)" stroke-width="1" fill="none"/>
+
+  <!-- Center diamond -->
+  <path d="M195 12 L200 6 L205 12 L200 18 Z"
+        fill="#d4a853"/>
+
+  <!-- Side flourishes -->
+  <circle cx="160" cy="12" r="2" fill="#d4a853" opacity="0.7"/>
+  <circle cx="240" cy="12" r="2" fill="#d4a853" opacity="0.7"/>
+
+  <!-- Smaller dots -->
+  <circle cx="130" cy="12" r="1" fill="#d4a853" opacity="0.5"/>
+  <circle cx="270" cy="12" r="1" fill="#d4a853" opacity="0.5"/>
+</svg>

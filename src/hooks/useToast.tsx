@@ -1,15 +1,11 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react'
-import { ToastContainer, ToastVariant } from '@/components/ui/Toast'
-import { nanoid } from 'nanoid'
+import { createContext, useContext, ReactNode, useCallback } from 'react'
+import { toast as sonnerToast } from 'sonner'
+import { Toaster } from '@/components/ui/Sonner'
+import { CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react'
 
-interface Toast {
-  id: string
-  message: string
-  variant: ToastVariant
-  duration?: number
-}
+export type ToastVariant = 'success' | 'error' | 'warning' | 'info'
 
 interface ToastContextType {
   showToast: (message: string, variant: ToastVariant, duration?: number) => void
@@ -22,37 +18,53 @@ interface ToastContextType {
 const ToastContext = createContext<ToastContextType | undefined>(undefined)
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<Toast[]>([])
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id))
-  }, [])
-
   const showToast = useCallback((message: string, variant: ToastVariant, duration = 5000) => {
-    const id = nanoid()
-    setToasts((prev) => [...prev, { id, message, variant, duration }])
+    const icons = {
+      success: <CheckCircle className="h-5 w-5 text-success" />,
+      error: <XCircle className="h-5 w-5 text-destructive" />,
+      warning: <AlertTriangle className="h-5 w-5 text-warning" />,
+      info: <Info className="h-5 w-5 text-primary" />,
+    }
+
+    sonnerToast(message, {
+      icon: icons[variant],
+      duration,
+      className: variant,
+    })
   }, [])
 
   const success = useCallback((message: string, duration?: number) => {
-    showToast(message, 'success', duration)
-  }, [showToast])
+    sonnerToast.success(message, {
+      icon: <CheckCircle className="h-5 w-5 text-success" />,
+      duration,
+    })
+  }, [])
 
   const error = useCallback((message: string, duration?: number) => {
-    showToast(message, 'error', duration)
-  }, [showToast])
+    sonnerToast.error(message, {
+      icon: <XCircle className="h-5 w-5 text-destructive" />,
+      duration,
+    })
+  }, [])
 
   const warning = useCallback((message: string, duration?: number) => {
-    showToast(message, 'warning', duration)
-  }, [showToast])
+    sonnerToast.warning(message, {
+      icon: <AlertTriangle className="h-5 w-5 text-warning" />,
+      duration,
+    })
+  }, [])
 
   const info = useCallback((message: string, duration?: number) => {
-    showToast(message, 'info', duration)
-  }, [showToast])
+    sonnerToast.info(message, {
+      icon: <Info className="h-5 w-5 text-primary" />,
+      duration,
+    })
+  }, [])
 
   return (
     <ToastContext.Provider value={{ showToast, success, error, warning, info }}>
       {children}
-      <ToastContainer toasts={toasts} onClose={removeToast} />
+      <Toaster />
     </ToastContext.Provider>
   )
 }
@@ -64,3 +76,6 @@ export function useToast() {
   }
   return context
 }
+
+// Re-export toast for direct usage
+export { sonnerToast as toast }

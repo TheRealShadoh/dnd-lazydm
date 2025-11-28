@@ -3,6 +3,19 @@ import path from 'path';
 import bcrypt from 'bcryptjs';
 import { nanoid } from 'nanoid';
 
+export interface AIConfig {
+  claudeApiKey?: string;       // Encrypted API key for Claude (direct)
+  openRouterApiKey?: string;   // Encrypted API key for OpenRouter
+  aiProvider?: 'claude' | 'openrouter';  // Which AI provider to use
+  openRouterModel?: string;    // Model to use with OpenRouter (e.g., 'anthropic/claude-3.5-sonnet')
+  imageApiKey?: string;        // Encrypted API key for image generation
+  imageProvider?: 'openai' | 'stability' | 'none';
+}
+
+export interface UserSettings {
+  aiConfig?: AIConfig;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -10,6 +23,7 @@ export interface User {
   name: string;
   createdAt: string;
   isAdmin?: boolean;
+  settings?: UserSettings;
 }
 
 interface UsersData {
@@ -140,4 +154,60 @@ export async function deleteUser(id: string): Promise<boolean> {
 
   await writeUsers(data);
   return true;
+}
+
+/**
+ * Get user settings
+ */
+export async function getUserSettings(id: string): Promise<UserSettings | null> {
+  const user = await findUserById(id);
+  if (!user) return null;
+  return user.settings || {};
+}
+
+/**
+ * Update user settings
+ */
+export async function updateUserSettings(id: string, settings: Partial<UserSettings>): Promise<UserSettings | null> {
+  const data = await readUsers();
+  const index = data.users.findIndex(u => u.id === id);
+
+  if (index === -1) {
+    return null;
+  }
+
+  // Merge settings
+  data.users[index].settings = {
+    ...data.users[index].settings,
+    ...settings,
+  };
+
+  await writeUsers(data);
+  return data.users[index].settings || {};
+}
+
+/**
+ * Update AI config specifically
+ */
+export async function updateAIConfig(id: string, aiConfig: Partial<AIConfig>): Promise<AIConfig | null> {
+  const data = await readUsers();
+  const index = data.users.findIndex(u => u.id === id);
+
+  if (index === -1) {
+    return null;
+  }
+
+  // Initialize settings if needed
+  if (!data.users[index].settings) {
+    data.users[index].settings = {};
+  }
+
+  // Merge AI config
+  data.users[index].settings!.aiConfig = {
+    ...data.users[index].settings?.aiConfig,
+    ...aiConfig,
+  };
+
+  await writeUsers(data);
+  return data.users[index].settings?.aiConfig || {};
 }
